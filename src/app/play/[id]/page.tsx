@@ -59,6 +59,18 @@ const CONTINUE_PROMPT_EN =
 const CONTINUE_PROMPT_HI =
   "पिछला जवाब जहां रुका था, वहीं से आगे जारी रखो। पुराना text repeat मत करो। बाकी sections पूरे detail में finish करो और अंत में final options दो।";
 
+function looksIncomplete(text: string) {
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+
+  const withoutDecor = trimmed.replace(/[*_`~\s\u{1F300}-\u{1FAFF}\u2600-\u27BF]+$/gu, "");
+  if (!withoutDecor) return true;
+
+  const withoutClosingMarks = withoutDecor.replace(/[)"'\]}\u201d\u2019]+$/g, "");
+  const lastChar = withoutClosingMarks.at(-1) ?? "";
+  return ![".", "!", "?", "।", "…"].includes(lastChar);
+}
+
 export default function PlayPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -205,6 +217,13 @@ export default function PlayPage() {
             language === "hi"
               ? "AI ने पूरा जवाब नहीं दिया। कृपया Rewrite दबाएं या दूसरा मॉडल चुनें।"
               : "The AI returned an empty or incomplete reply. Use Rewrite or choose another model.",
+          );
+        }
+        if (looksIncomplete(finalAssistantText)) {
+          throw new Error(
+            language === "hi"
+              ? "AI बीच में रुक गया। कृपया Rewrite दबाएं या दूसरा मॉडल चुनें।"
+              : "The AI stopped mid-sentence. Use Rewrite or choose another model.",
           );
         }
 

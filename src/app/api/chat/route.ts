@@ -22,6 +22,7 @@ const DEFAULT_NVIDIA_MODEL = "deepseek-ai/deepseek-v4-flash";
 const MAX_OUTPUT_TOKENS = 3200;
 const CONTINUATION_TOKENS = 1600;
 const UPSTREAM_TIMEOUT_MS = 45000;
+const MAX_AUTO_CONTINUATIONS = 2;
 
 type Provider = "nvidia" | "openrouter";
 
@@ -80,6 +81,28 @@ function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string
   }
 
   return attempts;
+}
+
+function looksIncomplete(text: string) {
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+
+  const withoutMarkdown = trimmed.replace(/[*_`~\s\u{1F300}-\u{1FAFF}\u2600-\u27BF]+$/gu, "");
+  if (!withoutMarkdown) return true;
+
+  const withoutClosingMarks = withoutMarkdown.replace(/[)"'\]}\u201d\u2019]+$/g, "");
+  const lastChar = withoutClosingMarks.at(-1) ?? "";
+  const completeEndings = new Set([
+    ".",
+    "!",
+    "?",
+    "।",
+    "…",
+  ]);
+
+  if (completeEndings.has(lastChar)) return false;
+
+  return true;
 }
 
 async function tryModel(
@@ -214,6 +237,39 @@ export async function POST(req: NextRequest) {
           let finishReason: string | null = null;
           const startLength = assistantText.trim().length;
 
+          const continueIfNeeded = async () => {
+            const hasNewText = assistantText.trim().length > startLength;
+            const needsContinuation =
+              hasNewText &&
+              continuationCount < MAX_AUTO_CONTINUATIONS &&
+              (finishReason === "length" || looksIncomplete(assistantText));
+
+            if (!needsContinuation) return;
+
+            controller.enqueue(encoder.encode("\n\n"));
+            const continuationMessages: IncomingMessage[] = [
+              ...body.messages,
+              { role: "assistant", content: assistantText },
+              {
+                role: "user",
+                content:
+                  "Continue from the exact last word where you stopped. Do not repeat earlier text. Finish the current sentence first, then finish the remaining required sections. End with a clear final option list.",
+              },
+            ];
+            const nextResult = await tryModel(
+              attempt.provider,
+              attempt.apiKey,
+              attempt.model,
+              continuationMessages,
+              temperature,
+              CONTINUATION_TOKENS,
+            );
+            const nextBody = (nextResult as unknown as { body?: ReadableStream<Uint8Array> } | null)?.body;
+            if (nextBody) {
+              await pipeModelStream(nextBody, continuationCount + 1);
+            }
+          };
+
           try {
             while (true) {
               const { value, done } = await reader.read();
@@ -229,30 +285,7 @@ export async function POST(req: NextRequest) {
 
                 const payload = line.slice(5).trim();
                 if (payload === "[DONE]") {
-                  if (finishReason === "length" && continuationCount < 1 && assistantText.trim()) {
-                    controller.enqueue(encoder.encode("\n\n"));
-                    const continuationMessages: IncomingMessage[] = [
-                      ...body.messages,
-                      { role: "assistant", content: assistantText },
-                      {
-                        role: "user",
-                        content:
-                          "Continue from exactly where you stopped and finish the remaining required sections. Do not repeat earlier text. End with a clear final option list.",
-                      },
-                    ];
-                    const nextResult = await tryModel(
-                      attempt.provider,
-                      attempt.apiKey,
-                      attempt.model,
-                      continuationMessages,
-                      temperature,
-                      CONTINUATION_TOKENS,
-                    );
-                    const nextBody = (nextResult as unknown as { body?: ReadableStream<Uint8Array> } | null)?.body;
-                    if (nextBody) {
-                      await pipeModelStream(nextBody, continuationCount + 1);
-                    }
-                  }
+                  await continueIfNeeded();
                   return;
                 }
 
@@ -278,6 +311,7 @@ export async function POST(req: NextRequest) {
             if (continuationCount === 0 && assistantText.trim().length === startLength) {
               throw new Error("The model returned no usable text. Please retry or choose another model.");
             }
+            await continueIfNeeded();
           } finally {
             reader.cancel().catch(() => {});
           }
