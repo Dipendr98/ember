@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { BUILTIN_SCENARIOS } from "@/lib/scenarios";
+import { DEFAULT_MODEL } from "@/lib/models";
 import { getProfile, saveProfile, newId, saveSession } from "@/lib/storage";
 import type { Character, Scenario, Session, CoupleProfile } from "@/lib/types";
 import { Zap, Flame } from "lucide-react";
@@ -53,7 +54,7 @@ export default function EasyModePage() {
       partnerA: { ...profile.partnerA, name: partnerA || "Partner A" },
       partnerB: { ...profile.partnerB, name: partnerB || "Partner B" },
       defaultIntensity: 5,
-      preferredModel: "deepseek/deepseek-v4-flash",
+      preferredModel: DEFAULT_MODEL,
     };
     saveProfile(updatedProfile);
 
@@ -64,7 +65,7 @@ export default function EasyModePage() {
       scenarioSnapshot: scenario,
       characters,
       intensity: 5,
-      model: "deepseek/deepseek-v4-flash",
+      model: DEFAULT_MODEL,
       messages: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),

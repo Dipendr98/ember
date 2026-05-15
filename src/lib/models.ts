@@ -2,35 +2,20 @@ import type { ModelOption } from "./types";
 
 export const MODEL_OPTIONS: ModelOption[] = [
   {
-    id: "google/gemini-2.5-flash:free",
-    label: "Gemini 2.5 Flash (Free / High Context)",
-    notes: "1 Million token context window. Completely free on OpenRouter, very fast, and excellent at long roleplays.",
+    id: "openrouter/free",
+    label: "OpenRouter Free Router",
+    notes: "Automatically selects an available free model on OpenRouter. Best choice when you want the app to run without buying credits.",
     recommended: true,
   },
   {
-    id: "deepseek/deepseek-v4-flash",
-    label: "DeepSeek V4 Flash (Fastest)",
-    notes: "Fastest useful first-token result in local testing. Uses OpenRouter throughput routing.",
+    id: "google/gemini-2.5-flash:free",
+    label: "Gemini 2.5 Flash (Free)",
+    notes: "Free OpenRouter model with high context. Good fallback when the free router is busy.",
   },
   {
     id: "nvidia/deepseek-v4-flash",
     label: "NVIDIA DeepSeek V4 Flash",
-    notes: "Uses NVIDIA directly when NVIDIA_API_KEY is set. Keep as backup if OpenRouter is busy.",
-  },
-  {
-    id: "qwen/qwen3.5-flash-02-23",
-    label: "Qwen3.5 Flash (OpenRouter)",
-    notes: "Cheap, high-context OpenRouter model. Good fallback, but it was slower to produce useful text in local testing.",
-  },
-  {
-    id: "meta-llama/llama-3.3-70b-instruct",
-    label: "Llama 3.3 70B (OpenRouter)",
-    notes: "Higher quality, usually slower than Flash models. Use when quality matters more than speed.",
-  },
-  {
-    id: "gryphe/mythomax-l2-13b",
-    label: "MythoMax 13B (OpenRouter)",
-    notes: "Small and cheap. Useful as a backup, but quality is less consistent.",
+    notes: "Uses NVIDIA directly when NVIDIA_API_KEY is set. Backup path if OpenRouter free routing is rate-limited.",
   },
 ];
 

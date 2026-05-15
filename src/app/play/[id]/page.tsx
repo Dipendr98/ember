@@ -19,7 +19,7 @@ import {
 
 import { Shell } from "@/components/Shell";
 import { CharacterEditor } from "@/components/CharacterEditor";
-import { MODEL_OPTIONS } from "@/lib/models";
+import { DEFAULT_MODEL, MODEL_OPTIONS } from "@/lib/models";
 import { buildSystemPrompt, openingPrompt } from "@/lib/prompts";
 import {
   getProfile,
@@ -170,7 +170,7 @@ export default function PlayPage() {
     }
     const knownModels = MODEL_OPTIONS.map((m) => m.id);
     if (!knownModels.includes(s.model)) {
-      s.model = "deepseek/deepseek-v4-flash";
+      s.model = DEFAULT_MODEL;
       saveSession(s);
     }
     // Hydrate from localStorage on mount.
