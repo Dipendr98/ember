@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { MODEL_OPTIONS } from "@/lib/models";
 
 type IncomingMessage = {
   role: "system" | "user" | "assistant";
@@ -17,7 +18,6 @@ export const maxDuration = 60;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-const DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-v4-flash";
 const DEFAULT_NVIDIA_MODEL = "deepseek-ai/deepseek-v4-flash";
 const MAX_OUTPUT_TOKENS = 3200;
 const CONTINUATION_TOKENS = 1600;
@@ -45,7 +45,7 @@ type StreamPayload = {
 
 function normalizeOpenRouterModel(model: string) {
   if (model === "nvidia/deepseek-v4-flash") return "deepseek/deepseek-v4-flash";
-  return model.replace(/:free$/, "");
+  return model;
 }
 
 function nvidiaModelFor(model: string) {
@@ -58,34 +58,51 @@ function nvidiaModelFor(model: string) {
 
 function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string): ModelAttempt[] {
   const attempts: ModelAttempt[] = [];
-  const normalizedModel = model.replace(/:free$/, "");
-  const isExplicitNvidia = normalizedModel === "nvidia/deepseek-v4-flash";
+  const normalizedModel = normalizeOpenRouterModel(model);
+  const isExplicitNvidia = model === "nvidia/deepseek-v4-flash";
 
+  // 1. Add the explicitly requested model first
   if (isExplicitNvidia && nvidiaKey) {
     attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
-  }
-
-  if (openRouterKey) {
+  } else if (openRouterKey && !isExplicitNvidia) {
     attempts.push({
       provider: "openrouter",
-      model: normalizeOpenRouterModel(model),
+      model: normalizedModel,
       apiKey: openRouterKey,
     });
+  }
 
-    if (normalizeOpenRouterModel(model) !== DEFAULT_OPENROUTER_MODEL) {
-      attempts.push({
-        provider: "openrouter",
-        model: DEFAULT_OPENROUTER_MODEL,
-        apiKey: openRouterKey,
-      });
+  // 2. Add ALL other models from MODEL_OPTIONS as automatic fallbacks
+  for (const option of MODEL_OPTIONS) {
+    if (option.id === model) continue; // Already added as primary
+
+    if (option.id === "nvidia/deepseek-v4-flash") {
+      if (nvidiaKey) {
+        attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
+      }
+    } else {
+      if (openRouterKey) {
+        attempts.push({
+          provider: "openrouter",
+          model: normalizeOpenRouterModel(option.id),
+          apiKey: openRouterKey,
+        });
+      }
     }
   }
 
-  if (!isExplicitNvidia && nvidiaKey) {
-    attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
+  // Deduplicate attempts (keep the first occurrence)
+  const uniqueAttempts: ModelAttempt[] = [];
+  const seen = new Set<string>();
+  for (const attempt of attempts) {
+    const key = `${attempt.provider}:${attempt.model}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueAttempts.push(attempt);
+    }
   }
 
-  return attempts;
+  return uniqueAttempts;
 }
 
 function looksIncomplete(text: string) {

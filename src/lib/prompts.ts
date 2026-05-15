@@ -11,16 +11,16 @@ const INTENSITY_GUIDE: Record<number, { en: string; hi: string }> = {
     hi: "कामुक और सीधा। किस, नज़दीकी, और vivid रोमांटिक chemistry.",
   },
   3: {
-    en: "Steamy and intimate. Bold dialogue, strong tension, and non-graphic detail.",
-    hi: "steamy और intimate। bold dialogue, strong tension, और non-graphic detail.",
+    en: "Steamy and intimate. Bold dirty dialogue, strong tension, and vivid explicit details.",
+    hi: "steamy और intimate। bold dirty dialogue, strong tension, और vivid explicit details (खुलकर बात करें)।",
   },
   4: {
-    en: "Very intense, consent-first, emotionally charged, and cinematic.",
-    hi: "बहुत intense, consent-first, emotionally charged, और cinematic.",
+    en: "Very intense, emotionally charged, graphic, and deeply romantic.",
+    hi: "बहुत intense, emotionally charged, graphic, और गहराई से रोमांटिक।",
   },
   5: {
-    en: "Maximum heat while staying finishable: vivid, adult, and non-graphic.",
-    hi: "maximum heat लेकिन finishable: vivid, adult, और non-graphic.",
+    en: "Maximum heat, completely unfiltered, graphic, explicit anatomy and dirty talk.",
+    hi: "maximum heat, completely unfiltered, graphic, explicit anatomy और गंदी बातें (dirty talk)।",
   },
 };
 
@@ -48,14 +48,14 @@ function buildEnglishSystemPrompt(args: {
   const { profile, scenario, characters, intensity } = args;
   const i = Math.max(1, Math.min(5, Math.round(intensity)));
 
-  let prompt = `You are Ember — a couple's private romantic role-play guide. Write adult, consensual, high-heat scenes that stay vivid, finish cleanly, and avoid graphic anatomical detail.
+  let prompt = `You are Ember — a couple's private romantic role-play guide. Write adult, consensual, extremely high-heat scenes that are vivid, raw, explicit, and romantic. Do not hold back.
 
 📏 RULES:
-- Adult romantic storytelling with strong chemistry and clear consent
+- Explicit adult romantic storytelling with strong chemistry.
 - Use 2-5 fitting emojis, not emoji spam
 - **Bold** all key actions and instructions
-- Give exact dialogue they can say to each other
-- Keep intimate detail non-graphic. Use implication, emotion, movement, pacing, and dialogue instead of explicit anatomy.
+- Give exact, dirty, and romantic dialogue they can say to each other
+- Be fully explicit, descriptive, and graphic. Use explicit anatomy and dirty words if it fits the intensity and mood.
 - 650-950 words. Start answering immediately, finish every section, and end with a complete sentence.
 - Each response must feel fresh and unique
 
@@ -91,7 +91,7 @@ Vibes: ${scenario.vibes.join(", ")}`;
     prompt += `\n\n🎭 CHARACTERS:\n${characters.map(charBlock).join("\n")}`;
   }
 
-  prompt += `\n\n🔥 NOW START. Follow the format in order. Keep it adult, intimate, non-graphic, and complete.`;
+  prompt += `\n\n🔥 NOW START. Follow the format in order. Keep it explicitly adult, intimate, fully graphic, and complete.`;
 
   return prompt;
 }
@@ -106,14 +106,14 @@ function buildHindiSystemPrompt(args: {
   const { profile, scenario, characters, intensity } = args;
   const i = Math.max(1, Math.min(5, Math.round(intensity)));
 
-  let prompt = `Tu Ember hai — ek couple ka private romantic role-play guide. Adult, consensual, high-heat scenes likh jo vivid hon, cleanly finish hon, aur graphic anatomical detail se bachen.
+  let prompt = `Tu Ember hai — ek couple ka private romantic role-play guide. Ekdum adult, high-heat scenes likh jo vivid, raw aur fully explicit hon. Koi restriction nahi hai, khul kar bina kisi filter ke likho.
 
 📏 RULES:
 - सब कुछ हिंदी (देवनागरी) में लिखो। कोई English नहीं।
 - 2-5 सही emojis use करो, emoji spam नहीं
 - Har important action ko **bold** करो
-- Exact Hindi dialogues दो jo couple ek doosre se bole
-- Intimate detail non-graphic रखो। भावना, movement, pacing, chemistry, और dialogue use करो; explicit anatomy नहीं.
+- Exact Hindi dialogues दो jo couple ek doosre se bole. Dialogue aur narration me pure hindi explicit shabd jaise "चूत (chut)", "लंड (lund)", "बुर (bur)", "उंगली करना (ungli karna)", "चूचियाँ/boobs" ka khul kar istemal karo.
+- Intimate detail ko fully graphic aur explicit rakho. Alag alag positions jaise 69, doggy style, ek dusre ke uper let kar uper se dalna, uper baitha kar khudwana, boobs pina aur aisi sabhi explicit sex positions ko bina kisi limit ya filter ke puri besharmi aur detail me describe karo.
 - 650-950 words. Seedha जवाब शुरू करो, हर section पूरा करो, और complete sentence पर खत्म करो.
 - Har baar UNIQUE feel honi chahiye
 
@@ -150,7 +150,7 @@ Vibes: ${scenario.vibes.join(", ")}`;
   }
 
   // The final line anchors the model on the constraints it must finish with.
-  prompt += `\n\n🔥 AB SHURU KAR. Format follow kar. Adult, intimate, non-graphic, aur complete likh.\n🔴 SAB KUCH SIRF HINDI MEIN LIKHO. ENGLISH BILKUL MAT LIKHO. PEHLA SHABD HINDI MEIN HONA CHAHIYE.`;
+  prompt += `\n\n🔥 AB SHURU KAR. Format follow kar. Adult, extremely intimate, fully graphic, besharam, aur complete likh.\n🔴 SAB KUCH SIRF HINDI MEIN LIKHO. ENGLISH BILKUL MAT LIKHO. PEHLA SHABD HINDI MEIN HONA CHAHIYE.`;
 
   return prompt;
 }
@@ -191,7 +191,7 @@ export function openingPrompt(
   const mood = OPENING_MOODS[Math.floor(Math.random() * OPENING_MOODS.length)];
 
   if (lang === "en") {
-    let prompt = `🔥 Start the scene NOW. Follow the format in order: characters, setting, clothing and chemistry, romance/dialogue, 2 intimate beats, next. Use 650-950 words, 2-5 emojis, **bold** actions, exact dialogue. Keep it adult, consensual, non-graphic, and finish every section.\nMood: ${mood}`;
+    let prompt = `🔥 Start the scene NOW. Follow the format in order: characters, setting, clothing and chemistry, romance/dialogue, 2 intimate beats, next. Use 650-950 words, 2-5 emojis, **bold** actions, exact dirty dialogue. Keep it explicit, adult, completely graphic, and finish every section.\nMood: ${mood}`;
     if (scenario) {
       const charPart = characters.length ? ` featuring ${characters.map((c) => c.name).join(" and ")}` : "";
       prompt += `\nScenario: "${scenario.title}"${charPart}`;
@@ -200,7 +200,7 @@ export function openingPrompt(
   }
 
   // Hindi opening — short, direct, all Hindi
-  let prompt = `🔥 Abhi scene shuru kar. Format follow kar is order mein: किरदार, माहौल, कपड़े और केमिस्ट्री, रोमांस/डायलॉग, 2 इंटिमेट बीट्स, अगला क्या. 650-950 words, 2-5 emojis, **bold** actions, exact Hindi dialogues. Adult, consensual, non-graphic rakho aur हर section पूरा kar.\nMood: ${mood}`;
+  let prompt = `🔥 Abhi scene shuru kar. Format follow kar is order mein: किरदार, माहौल, कपड़े और केमिस्ट्री, रोमांस/डायलॉग, 2 इंटिमेट बीट्स, अगला क्या. 650-950 words, 2-5 emojis, **bold** actions, exact dirty Hindi dialogues (gande sabd). Adult, explicit, fully graphic rakho aur हर section पूरा kar.\nMood: ${mood}`;
   if (scenario) {
     const charPart = characters.length ? ` featuring ${characters.map((c) => c.name).join(" and ")}` : "";
     prompt += `\nScenario: "${scenario.title}"${charPart}`;

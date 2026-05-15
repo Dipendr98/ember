@@ -2,10 +2,15 @@ import type { ModelOption } from "./types";
 
 export const MODEL_OPTIONS: ModelOption[] = [
   {
+    id: "google/gemini-2.5-flash:free",
+    label: "Gemini 2.5 Flash (Free / High Context)",
+    notes: "1 Million token context window. Completely free on OpenRouter, very fast, and excellent at long roleplays.",
+    recommended: true,
+  },
+  {
     id: "deepseek/deepseek-v4-flash",
     label: "DeepSeek V4 Flash (Fastest)",
     notes: "Fastest useful first-token result in local testing. Uses OpenRouter throughput routing.",
-    recommended: true,
   },
   {
     id: "nvidia/deepseek-v4-flash",
