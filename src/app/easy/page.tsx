@@ -11,7 +11,7 @@ import { useLanguage } from "@/components/LanguageContext";
 
 const content_en = {
   title: "Start now",
-  subtitle: "Bypass the long setup. Enter your names and pick a scenario. We'll handle the rest with the best settings for an uncensored experience.",
+  subtitle: "Bypass the long setup. Enter your names and pick a scenario. We'll handle the rest with fast, private settings.",
   partnerA: "Your Name",
   partnerB: "Partner's Name",
   pickScenario: "Pick a scenario",
@@ -25,7 +25,7 @@ const content_en = {
 
 const content_hi = {
   title: "अभी शुरू करें",
-  subtitle: "लंबे सेटअप को छोड़ें। अपने नाम दर्ज करें और एक परिदृश्य चुनें। हम एक अनसेंसर्ड अनुभव के लिए सर्वोत्तम सेटिंग्स के साथ बाकी काम संभाल लेंगे।",
+  subtitle: "लंबे सेटअप को छोड़ें। अपने नाम दर्ज करें और एक परिदृश्य चुनें। हम fast, private settings के साथ बाकी काम संभाल लेंगे।",
   partnerA: "आपका नाम",
   partnerB: "पार्टनर का नाम",
   pickScenario: "एक परिदृश्य चुनें",

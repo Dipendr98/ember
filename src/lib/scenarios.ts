@@ -72,7 +72,7 @@ export const BUILTIN_SCENARIOS: Scenario[] = [
     setting:
       "A candlelit hotel suite overlooking the ocean. Rose petals, a balcony, an unopened champagne bottle.",
     premise:
-      "It's the first night of your honeymoon. You've been waiting for this all day. Take your time — undress slowly, talk, savor each other.",
+      "It's the first night of your honeymoon. You've been waiting for this all day. Take your time, talk, and savor every small moment of closeness.",
     vibes: ["romantic", "tender", "sensual"],
     suggestedCharacters: [],
     builtin: true,
@@ -139,15 +139,15 @@ export const BUILTIN_SCENARIOS: Scenario[] = [
   },
   {
     id: "exhibition-balcony",
-    title: "Midnight Nudity",
-    title_hi: "आधी रात का नग्न रोमांस",
-    tagline: "Naked, exposed, and consumed by lust under the city lights.",
-    tagline_hi: "शहर की रोशनी के नीचे नग्न, खुले, और हवस में डूबे हुए।",
+    title: "Midnight Balcony",
+    title_hi: "आधी रात की बालकनी",
+    tagline: "Exposed to the night air, wrapped in risk and city lights.",
+    tagline_hi: "रात की हवा, शहर की रोशनी, और जोखिम भरी नज़दीकी।",
     setting:
-      "A high-rise apartment balcony or a secluded private beach at midnight. The cool breeze on bare skin, the absolute thrill of being completely exposed to the open air.",
+      "A high-rise apartment balcony or a secluded private beach at midnight. Cool air, distant lights, and the private thrill of being outside together.",
     premise:
-      "You dare each other to strip down completely naked in the open. The fear of being seen mixes with an intense, uncontrollable lust. Every touch feels electric. Who will lose control first?",
-    vibes: ["nudity", "exhibitionism", "raw lust", "thrill"],
+      "You dare each other to step beyond your usual comfort zone. The fear of being noticed mixes with trust, laughter, and electric tension.",
+    vibes: ["risk", "exhibition tease", "chemistry", "thrill"],
     suggestedCharacters: [],
     builtin: true,
   },

@@ -37,27 +37,27 @@ import { useLanguage } from "@/components/LanguageContext";
 
 const QUICK_ACTIONS_EN = [
   { label: "Romance 🔥", text: "Make it more romantic and passionate." },
-  { label: "Dirty Talk 😈", text: "Start dirty talk. No holds barred. Say the filthiest things." },
-  { label: "Go Deeper 🥵", text: "Go deeper. Make every touch more intense and arousing." },
-  { label: "Take Control ⛓️", text: "Dominate completely. Tell me exactly what to do." },
+  { label: "Dirty Talk 😈", text: "Add bold, intimate dialogue while keeping the scene flowing." },
+  { label: "Go Deeper 🥵", text: "Go deeper emotionally and physically, with vivid but non-graphic detail." },
+  { label: "Take Control ⛓️", text: "Make the dynamic more commanding and intense while keeping it consensual." },
   { label: "Wild Twist 🔞", text: "Throw in a wild, unexpected twist that completely surprises." },
-  { label: "Full Speed ⚡", text: "No mercy. Full intensity and speed. Make every sensation felt." },
+  { label: "Full Speed ⚡", text: "Raise the pace and intensity, then finish the beat cleanly." },
 ];
 
 const QUICK_ACTIONS_HI = [
   { label: "रोमांस 🔥", text: "इसे और रोमांटिक और भावुक बनाओ।" },
-  { label: "डर्टी टॉक 😈", text: "डर्टी टॉक शुरू करो। बिना किसी रोक-टोक के। गंदी बातें बोलो।" },
-  { label: "और गहरा 🥵", text: "और गहरे जाओ। हर एक स्पर्श को और उत्तेजक बनाओ।" },
-  { label: "कंट्रोल लो ⛓️", text: "पूरी तरह से डोमिनेट करो। मुझे बताओ मुझे क्या करना है।" },
+  { label: "डायलॉग 😈", text: "बोल्ड और अंतरंग dialogue जोड़ो, लेकिन scene साफ़ तरीके से आगे बढ़े।" },
+  { label: "और गहरा 🥵", text: "भावना और chemistry को और गहरा बनाओ, vivid लेकिन non-graphic detail में।" },
+  { label: "कंट्रोल लो ⛓️", text: "dynamic को ज्यादा confident और intense बनाओ, consent साफ रखो।" },
   { label: "नया मोड़ 🔞", text: "एक बहुत ही वाइल्ड और अचानक मोड़ लाओ जो पूरी तरह से सरप्राइज़ करे।" },
-  { label: "पूरी रफ़्तार ⚡", text: "अब कोई रहम नहीं। पूरी तीव्रता और रफ़्तार से आगे बढ़ो। हर एहसास को महसूस कराओ।" },
+  { label: "पूरी रफ़्तार ⚡", text: "pace और intensity बढ़ाओ, फिर beat को साफ़ sentence में finish करो।" },
 ];
 
 const CONTINUE_PROMPT_EN =
-  "Continue exactly from where your previous answer stopped. Do not repeat earlier text. Finish the remaining sections in full and end with the final options.";
+  "Continue from the exact last word where the previous answer stopped. Return only new text. Do not repeat any prior sentence. Finish with a complete sentence.";
 
 const CONTINUE_PROMPT_HI =
-  "पिछला जवाब जहां रुका था, वहीं से आगे जारी रखो। पुराना text repeat मत करो। बाकी sections पूरे detail में finish करो और अंत में final options दो।";
+  "पिछला जवाब जहां रुका था, वहीं से आगे जारी रखो। सिर्फ नया text दो। पुराना sentence repeat मत करो। Complete sentence पर finish करो।";
 
 function looksIncomplete(text: string) {
   const trimmed = text.trim();
@@ -77,6 +77,33 @@ function isTechnicalOpeningPrompt(text: string) {
     text.includes("Follow the format in order:") ||
     text.includes("Format follow kar")
   );
+}
+
+function normalizeForOverlap(text: string) {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function mergeContinuation(base: string, continuation: string) {
+  const first = base.trimEnd();
+  let second = continuation.trimStart();
+  if (!second) return first;
+
+  const maxOverlap = Math.min(240, first.length, second.length);
+  for (let size = maxOverlap; size >= 8; size -= 1) {
+    const suffix = normalizeForOverlap(first.slice(-size));
+    const prefix = normalizeForOverlap(second.slice(0, size));
+    if (suffix && suffix === prefix) {
+      second = second.slice(size).trimStart();
+      break;
+    }
+  }
+
+  const lastSentence = first.match(/[^.!?।…]+[.!?।…]\s*$/)?.[0]?.trim();
+  if (lastSentence && normalizeForOverlap(second).startsWith(normalizeForOverlap(lastSentence))) {
+    second = second.slice(lastSentence.length).trimStart();
+  }
+
+  return second ? `${first}\n\n${second}` : first;
 }
 
 async function readChatStream(
@@ -246,7 +273,7 @@ export default function PlayPage() {
           );
         }
 
-        if (looksIncomplete(finalAssistantText)) {
+        for (let continuationAttempt = 0; continuationAttempt < 2 && looksIncomplete(finalAssistantText); continuationAttempt += 1) {
           const continuationPayload = {
             model: currSession.model,
             messages: [
@@ -263,11 +290,11 @@ export default function PlayPage() {
           const continuationText = await readChatStream(
             continuationPayload,
             controller.signal,
-            (nextText) => setStreamText(`${finalAssistantText}\n\n${nextText}`),
+            (nextText) => setStreamText(mergeContinuation(finalAssistantText, nextText)),
           );
 
           if (continuationText.length > 0) {
-            finalAssistantText = `${finalAssistantText}\n\n${continuationText}`.trim();
+            finalAssistantText = mergeContinuation(finalAssistantText, continuationText);
           }
         }
 

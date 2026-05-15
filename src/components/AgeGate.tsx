@@ -36,8 +36,8 @@ export function AgeGate({ children }: { children: React.ReactNode }) {
         </h1>
         <p className="text-foreground/85 leading-relaxed mb-4">
           {language === "hi"
-            ? "यह ऐप सहमति से जोड़ों के लिए एक्सप्लिसिट रोल-प्ले कहानियाँ बनाता है। आगे बढ़कर, आप पुष्टि करते हैं कि:"
-            : "This app generates explicit, adult role-play content for consenting partners. By continuing, you confirm that:"}
+            ? "यह ऐप consenting partners के लिए adult romantic role-play stories बनाता है। आगे बढ़कर, आप पुष्टि करते हैं कि:"
+            : "This app generates adult romantic role-play content for consenting partners. By continuing, you confirm that:"}
         </p>
         <ul className="text-foreground/75 text-sm space-y-1.5 mb-6 list-disc pl-5">
           <li>

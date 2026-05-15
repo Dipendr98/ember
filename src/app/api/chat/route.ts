@@ -22,7 +22,7 @@ const DEFAULT_NVIDIA_MODEL = "deepseek-ai/deepseek-v4-flash";
 const MAX_OUTPUT_TOKENS = 3200;
 const CONTINUATION_TOKENS = 1600;
 const UPSTREAM_TIMEOUT_MS = 45000;
-const MAX_AUTO_CONTINUATIONS = 2;
+const MAX_AUTO_CONTINUATIONS = 0;
 
 type Provider = "nvidia" | "openrouter";
 
@@ -253,7 +253,7 @@ export async function POST(req: NextRequest) {
               {
                 role: "user",
                 content:
-                  "Continue from the exact last word where you stopped. Do not repeat earlier text. Finish the current sentence first, then finish the remaining required sections. End with a clear final option list.",
+                  "Continue from the exact last word where you stopped. Return only the missing continuation, never repeat earlier text. Finish with a complete sentence.",
               },
             ];
             const nextResult = await tryModel(

@@ -6,7 +6,7 @@ import { Flame, Library, Settings, BookOpen, ArrowRight, Sparkles } from "lucide
 import { useLanguage } from "@/components/LanguageContext";
 
 const content_en = {
-  badge: "🔥 Private uncensored role-play for couples",
+  badge: "🔥 Private romantic role-play for couples",
   title: "Make the night last.",
   subtitle:
     "Pick a scenario, shape a character, and let an AI storyteller weave a slow-burn role-play you both steer together. Long-context, fully private, as steamy as you want it.",
@@ -46,7 +46,7 @@ const content_en = {
 };
 
 const content_hi = {
-  badge: "🔥 कपल्स के लिए प्राइवेट अनसेंसर्ड रोल-प्ले",
+  badge: "🔥 कपल्स के लिए प्राइवेट रोमांटिक रोल-प्ले",
   title: "रात को यादगार बनाएं।",
   subtitle:
     "एक परिदृश्य चुनें, एक चरित्र को आकार दें, और एक एआई कहानीकार को एक धीमी गति वाला रोल-प्ले बुनने दें जिसे आप दोनों एक साथ निर्देशित करते हैं। लंबी कहानी, पूरी तरह से निजी, और जितना आप चाहें उतना उत्तेजक।",
@@ -127,15 +127,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sexy stats bar */}
+      {/* Stats bar */}
       <section className="flex flex-wrap justify-center gap-6 sm:gap-12 mb-12 animate-fade-in">
         <div className="text-center">
           <div className="text-2xl font-bold gradient-text">10+</div>
           <div className="text-xs text-muted mt-1">Scenarios</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold gradient-text">100%</div>
-          <div className="text-xs text-muted mt-1">Uncensored</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold gradient-text">Private</div>
@@ -177,7 +173,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Promises section with sexy styling */}
+      {/* Promises section */}
       <section className="sexy-card rounded-2xl p-6 sm:p-8">
         <h2 className="text-xl font-semibold mb-6 gradient-text-pink animate-text-glow text-center">
           🔥 A few promises 🔥
@@ -185,9 +181,9 @@ export default function Home() {
         <div className="grid sm:grid-cols-3 gap-6">
           <div className="text-center p-4">
             <div className="text-3xl mb-2 animate-heartbeat">💋</div>
-            <h3 className="font-semibold text-accent-soft mb-2">No filter.</h3>
+            <h3 className="font-semibold text-accent-soft mb-2">High heat.</h3>
             <p className="text-sm text-foreground/70 leading-relaxed">
-              Ember writes without any censorship. Fully explicit, fully uncensored. Every word, every detail.
+              Ember writes vivid adult romance that keeps the scene moving and finishes cleanly.
             </p>
           </div>
           <div className="text-center p-4 border-x border-accent/10">
