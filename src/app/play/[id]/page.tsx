@@ -71,6 +71,49 @@ function looksIncomplete(text: string) {
   return ![".", "!", "?", "।", "…"].includes(lastChar);
 }
 
+function isTechnicalOpeningPrompt(text: string) {
+  return (
+    text.startsWith("[Unique story seed:") ||
+    text.includes("Follow the format in order:") ||
+    text.includes("Format follow kar")
+  );
+}
+
+async function readChatStream(
+  payload: {
+    model: string;
+    messages: { role: "system" | "user" | "assistant"; content: string }[];
+    temperature: number;
+  },
+  signal: AbortSignal,
+  onText: (text: string) => void,
+) {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal,
+  });
+
+  if (!res.ok || !res.body) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.error ?? `Request failed (${res.status})`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    text += decoder.decode(value, { stream: true });
+    onText(text);
+  }
+
+  return text.trim();
+}
+
 export default function PlayPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -174,44 +217,27 @@ export default function PlayPage() {
       persist(withUser);
       sessionRef.current = withUser;
 
+      const requestMessages = [
+        { role: "system" as const, content: systemPrompt },
+        ...baseMessages.map((m) => ({ role: m.role, content: m.content })),
+      ];
+
       const payload = {
         model: currSession.model,
-        messages: [
-          { role: "system" as const, content: systemPrompt },
-          ...baseMessages.map((m) => ({ role: m.role, content: m.content })),
-        ],
+        messages: requestMessages,
         temperature: 0.72,
       };
 
       const controller = new AbortController();
       abortRef.current = controller;
 
-      let assistantText = "";
-
       try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
+        let finalAssistantText = await readChatStream(
+          payload,
+          controller.signal,
+          setStreamText,
+        );
 
-        if (!res.ok || !res.body) {
-          const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.error ?? `Request failed (${res.status})`);
-        }
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          assistantText += decoder.decode(value, { stream: true });
-          setStreamText(assistantText);
-        }
-
-        const finalAssistantText = assistantText.trim();
         if (finalAssistantText.length < 40) {
           throw new Error(
             language === "hi"
@@ -219,12 +245,30 @@ export default function PlayPage() {
               : "The AI returned an empty or incomplete reply. Use Rewrite or choose another model.",
           );
         }
+
         if (looksIncomplete(finalAssistantText)) {
-          throw new Error(
-            language === "hi"
-              ? "AI बीच में रुक गया। कृपया Rewrite दबाएं या दूसरा मॉडल चुनें।"
-              : "The AI stopped mid-sentence. Use Rewrite or choose another model.",
+          const continuationPayload = {
+            model: currSession.model,
+            messages: [
+              ...requestMessages,
+              { role: "assistant" as const, content: finalAssistantText },
+              {
+                role: "user" as const,
+                content: language === "hi" ? CONTINUE_PROMPT_HI : CONTINUE_PROMPT_EN,
+              },
+            ],
+            temperature: 0.72,
+          };
+
+          const continuationText = await readChatStream(
+            continuationPayload,
+            controller.signal,
+            (nextText) => setStreamText(`${finalAssistantText}\n\n${nextText}`),
           );
+
+          if (continuationText.length > 0) {
+            finalAssistantText = `${finalAssistantText}\n\n${continuationText}`.trim();
+          }
         }
 
         const assistantMessage: ChatMessage = {
@@ -578,8 +622,8 @@ function Bubble({
   streaming?: boolean;
 }) {
   const isUser = message.role === "user";
-  // Hide the raw technical opening prompt from the user — show a clean Hindi message instead
-  const isOpeningPrompt = isUser && message.content.startsWith("[Unique story seed:");
+  // Hide raw steering prompts from the user.
+  const isOpeningPrompt = isUser && isTechnicalOpeningPrompt(message.content);
   const displayContent = isOpeningPrompt ? "🔥 Starting the scene…" : message.content;
 
   return (
