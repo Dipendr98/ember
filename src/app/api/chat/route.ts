@@ -31,6 +31,17 @@ type ModelAttempt = {
   apiKey: string;
 };
 
+type StreamPayload = {
+  choices?: {
+    delta?: { content?: string };
+    finish_reason?: string | null;
+  }[];
+  error?: {
+    message?: string;
+    code?: string | number;
+  };
+};
+
 function normalizeOpenRouterModel(model: string) {
   if (model === "nvidia/deepseek-v4-flash") return "deepseek/deepseek-v4-flash";
   return model.replace(/:free$/, "");
@@ -201,6 +212,7 @@ export async function POST(req: NextRequest) {
           const reader = bodyStream.getReader();
           let buffer = "";
           let finishReason: string | null = null;
+          const startLength = assistantText.trim().length;
 
           try {
             while (true) {
@@ -244,21 +256,27 @@ export async function POST(req: NextRequest) {
                   return;
                 }
 
+                let json: StreamPayload;
                 try {
-                  const json = JSON.parse(payload) as {
-                    choices?: {
-                      delta?: { content?: string };
-                      finish_reason?: string | null;
-                    }[];
-                  };
-                  finishReason = json.choices?.[0]?.finish_reason ?? finishReason;
-                  const delta = json.choices?.[0]?.delta?.content ?? "";
-                  if (delta) {
-                    assistantText += delta;
-                    controller.enqueue(encoder.encode(delta));
-                  }
-                } catch {}
+                  json = JSON.parse(payload) as StreamPayload;
+                } catch {
+                  continue;
+                }
+
+                if (json.error) {
+                  throw new Error(json.error.message ?? "The model returned a streaming error.");
+                }
+
+                finishReason = json.choices?.[0]?.finish_reason ?? finishReason;
+                const delta = json.choices?.[0]?.delta?.content ?? "";
+                if (delta) {
+                  assistantText += delta;
+                  controller.enqueue(encoder.encode(delta));
+                }
               }
+            }
+            if (continuationCount === 0 && assistantText.trim().length === startLength) {
+              throw new Error("The model returned no usable text. Please retry or choose another model.");
             }
           } finally {
             reader.cancel().catch(() => {});

@@ -174,6 +174,8 @@ export default function PlayPage() {
       const controller = new AbortController();
       abortRef.current = controller;
 
+      let assistantText = "";
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
@@ -189,7 +191,6 @@ export default function PlayPage() {
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        let assistantText = "";
 
         while (true) {
           const { value, done } = await reader.read();
@@ -198,10 +199,19 @@ export default function PlayPage() {
           setStreamText(assistantText);
         }
 
+        const finalAssistantText = assistantText.trim();
+        if (finalAssistantText.length < 40) {
+          throw new Error(
+            language === "hi"
+              ? "AI ने पूरा जवाब नहीं दिया। कृपया Rewrite दबाएं या दूसरा मॉडल चुनें।"
+              : "The AI returned an empty or incomplete reply. Use Rewrite or choose another model.",
+          );
+        }
+
         const assistantMessage: ChatMessage = {
           id: newId(),
           role: "assistant",
-          content: assistantText.trim(),
+          content: finalAssistantText,
           createdAt: Date.now(),
         };
         const finalMessages = [...baseMessages, assistantMessage];
@@ -210,13 +220,14 @@ export default function PlayPage() {
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           setError((err as Error).message);
+          setStreamText("");
         }
       } finally {
         setStreaming(false);
         abortRef.current = null;
       }
     },
-    [persist, systemPrompt],
+    [language, persist, systemPrompt],
   );
 
   function handleSubmit(e: React.FormEvent) {
