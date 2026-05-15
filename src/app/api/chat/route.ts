@@ -58,10 +58,11 @@ function nvidiaModelFor(model: string) {
 
 function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string): ModelAttempt[] {
   const attempts: ModelAttempt[] = [];
-  const nvidiaModel = nvidiaModelFor(model);
+  const normalizedModel = model.replace(/:free$/, "");
+  const isExplicitNvidia = normalizedModel === "nvidia/deepseek-v4-flash";
 
-  if (nvidiaKey && nvidiaModel) {
-    attempts.push({ provider: "nvidia", model: nvidiaModel, apiKey: nvidiaKey });
+  if (isExplicitNvidia && nvidiaKey) {
+    attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
   }
 
   if (openRouterKey) {
@@ -78,6 +79,10 @@ function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string
         apiKey: openRouterKey,
       });
     }
+  }
+
+  if (!isExplicitNvidia && nvidiaKey) {
+    attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
   }
 
   return attempts;
@@ -152,8 +157,20 @@ async function tryModel(
     clearTimeout(timeout);
 
     if (upstream.status === 429 || upstream.status === 402 || upstream.status >= 500) {
-      await upstream.text().catch(() => {});
-      return null;
+      const text = await upstream.text().catch(() => "");
+      let errorMessage = `Provider error ${upstream.status}`;
+      try {
+        const json = JSON.parse(text);
+        if (json.error?.message) {
+          errorMessage = json.error.message;
+        }
+      } catch {
+        if (text) errorMessage += `: ${text.slice(0, 200)}`;
+      }
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        { status: upstream.status, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     if (!upstream.ok || !upstream.body) {
