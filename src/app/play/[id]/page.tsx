@@ -53,6 +53,12 @@ const QUICK_ACTIONS_HI = [
   { label: "पूरी रफ़्तार ⚡", text: "अब कोई रहम नहीं। पूरी तीव्रता और रफ़्तार से आगे बढ़ो। हर एहसास को महसूस कराओ।" },
 ];
 
+const CONTINUE_PROMPT_EN =
+  "Continue exactly from where your previous answer stopped. Do not repeat earlier text. Finish the remaining sections in full and end with the final options.";
+
+const CONTINUE_PROMPT_HI =
+  "पिछला जवाब जहां रुका था, वहीं से आगे जारी रखो। पुराना text repeat मत करो। बाकी sections पूरे detail में finish करो और अंत में final options दो।";
+
 export default function PlayPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -233,6 +239,10 @@ export default function PlayPage() {
     sendMessage(lastUser.content, { replaceLastAssistant: true });
   }
 
+  function continueLastResponse() {
+    sendMessage(language === "hi" ? CONTINUE_PROMPT_HI : CONTINUE_PROMPT_EN);
+  }
+
   function undoLastExchange() {
     const s = sessionRef.current;
     if (!s) return;
@@ -393,6 +403,14 @@ export default function PlayPage() {
                       className="text-xs px-2.5 py-1 rounded-md border border-card-border hover:border-accent text-muted hover:text-foreground transition-colors inline-flex items-center gap-1 disabled:opacity-40"
                     >
                       <RefreshCw className="w-3 h-3" /> {language === "hi" ? "दोबारा लिखो" : "Rewrite"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={streaming || session.messages.length === 0}
+                      onClick={continueLastResponse}
+                      className="text-xs px-2.5 py-1 rounded-md border border-card-border hover:border-accent text-muted hover:text-foreground transition-colors disabled:opacity-40"
+                    >
+                      {language === "hi" ? "आगे जारी" : "Continue"}
                     </button>
                     <button
                       type="button"

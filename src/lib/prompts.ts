@@ -56,7 +56,7 @@ function buildEnglishSystemPrompt(args: {
 - **Bold** all key actions and instructions
 - Give exact dialogue they can say to each other
 - Describe positions in full: body placement, angle, legs, hands, movement, rhythm, speed, depth
-- 450-700 words. Start answering immediately, finish every section, and avoid filler.
+- 700-1100 words. Start answering immediately, finish every section, and avoid filler.
 - Each response must feel fresh and unique
 
 📋 FORMAT — ALWAYS FOLLOW IN ORDER:
@@ -114,7 +114,7 @@ function buildHindiSystemPrompt(args: {
 - Har important action ko **bold** करो
 - Exact Hindi dialogues दो jo couple ek doosre se bole
 - Positions: body placement, angle, legs, hands, movement, rhythm, speed, depth — poora detail
-- 450-700 words. Seedha जवाब शुरू करो, हर section पूरा करो, filler मत लिखो.
+- 700-1100 words. Seedha जवाब शुरू करो, हर section पूरा करो, filler मत लिखो.
 - Har baar UNIQUE feel honi chahiye
 
 📋 FORMAT — HAMESHA IS ORDER MEIN LIKHO:
@@ -191,7 +191,7 @@ export function openingPrompt(
   const mood = OPENING_MOODS[Math.floor(Math.random() * OPENING_MOODS.length)];
 
   if (lang === "en") {
-    let prompt = `🔥 Start the scene NOW. Follow the format in order: characters, setting, stripping, romance, 2 positions, next. Use 450-700 words, 2-5 emojis, **bold** actions, exact dialogue. Finish every section without filler.\nMood: ${mood}`;
+    let prompt = `🔥 Start the scene NOW. Follow the format in order: characters, setting, stripping, romance, 2 positions, next. Use 700-1100 words, 2-5 emojis, **bold** actions, exact dialogue. Finish every section without filler.\nMood: ${mood}`;
     if (scenario) {
       const charPart = characters.length ? ` featuring ${characters.map((c) => c.name).join(" and ")}` : "";
       prompt += `\nScenario: "${scenario.title}"${charPart}`;
@@ -200,7 +200,7 @@ export function openingPrompt(
   }
 
   // Hindi opening — short, direct, all Hindi
-  let prompt = `🔥 Abhi scene shuru kar. Format follow kar is order mein: किरदार, माहौल, कपड़े उतरना, रोमांस, 2 पोज़ीशन, अगला क्या. 450-700 words, 2-5 emojis, **bold** actions, exact Hindi dialogues. Har section पूरा kar, filler mat likh.\nMood: ${mood}`;
+  let prompt = `🔥 Abhi scene shuru kar. Format follow kar is order mein: किरदार, माहौल, कपड़े उतरना, रोमांस, 2 पोज़ीशन, अगला क्या. 700-1100 words, 2-5 emojis, **bold** actions, exact Hindi dialogues. Har section पूरा kar, filler mat likh.\nMood: ${mood}`;
   if (scenario) {
     const charPart = characters.length ? ` featuring ${characters.map((c) => c.name).join(" and ")}` : "";
     prompt += `\nScenario: "${scenario.title}"${charPart}`;

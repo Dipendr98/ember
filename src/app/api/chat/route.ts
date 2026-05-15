@@ -13,14 +13,15 @@ type RequestBody = {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 const DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-v4-flash";
 const DEFAULT_NVIDIA_MODEL = "deepseek-ai/deepseek-v4-flash";
-const MAX_OUTPUT_TOKENS = 2200;
-const CONTINUATION_TOKENS = 1000;
-const UPSTREAM_TIMEOUT_MS = 25000;
+const MAX_OUTPUT_TOKENS = 3200;
+const CONTINUATION_TOKENS = 1600;
+const UPSTREAM_TIMEOUT_MS = 45000;
 
 type Provider = "nvidia" | "openrouter";
 
