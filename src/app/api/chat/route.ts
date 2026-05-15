@@ -271,20 +271,6 @@ export async function POST(req: NextRequest) {
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
-
-  if (isSexualViolenceRequest(latestUserText(body.messages))) {
-    return new Response(
-      "Main rape ya non-consensual sexual content nahi likh sakta. Aap chaho to main isi vibe ko consensual dark-thriller romance, dangerous villain energy, ya intense power-play storyline mein likh sakta hoon.",
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "text/plain; charset=utf-8",
-          "Cache-Control": "no-cache",
-        },
-      },
-    );
-  }
-
   const temperature = body.temperature ?? 0.72;
   const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey);
   let lastErrorResponse: Response | null = null;
