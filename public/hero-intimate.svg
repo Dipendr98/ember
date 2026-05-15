@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0d1a"/>
+      <stop offset="50%" style="stop-color:#2a1525"/>
+      <stop offset="100%" style="stop-color:#1a0d1a"/>
+    </linearGradient>
+    <radialGradient id="pulse" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff6b9d;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#e91e63;stop-opacity:0"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4"/></filter>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bg)"/>
+  <circle cx="300" cy="300" r="200" fill="url(#pulse)" opacity="0.3"/>
+  <circle cx="900" cy="300" r="200" fill="url(#pulse)" opacity="0.3"/>
+  <circle cx="600" cy="250" r="150" fill="url(#pulse)" opacity="0.2"/>
+  <g filter="url(#glow)">
+    <path d="M250,400 Q240,340 260,290 Q270,260 300,250 Q320,245 340,250 Q370,260 380,290 Q390,320 380,360 Q370,400 360,430 L250,430 Z" fill="#4a2438" opacity="0.9"/>
+    <ellipse cx="280" cy="220" rx="30" ry="35" fill="#4a2438" opacity="0.95"/>
+    <path d="M260,200 Q240,180 230,210 Q220,240 240,260 Q250,270 260,260 Q270,240 265,220 Z" fill="#2a1525" opacity="0.8"/>
+    <path d="M300,260 Q310,230 320,210 Q325,200 330,195" stroke="#4a2438" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <path d="M290,270 Q280,245 270,235 Q260,225 250,225" stroke="#4a2438" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <ellipse cx="310" cy="275" rx="18" ry="12" fill="#3a1e30" opacity="0.7"/>
+    <path d="M360,380 Q380,400 400,420 Q420,440 440,450" stroke="#4a2438" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <path d="M350,390 Q340,430 330,460 Q320,480 310,490" stroke="#4a2438" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.8"/>
+  </g>
+  <g filter="url(#glow)">
+    <path d="M800,400 Q790,330 810,290 Q820,270 840,260 Q860,255 880,265 Q900,280 910,320 Q920,360 900,410 L800,410 Z" fill="#3a1e30" opacity="0.9"/>
+    <ellipse cx="830" cy="225" rx="32" ry="38" fill="#3a1e30" opacity="0.95"/>
+    <path d="M810,200 Q790,185 785,210 Q780,235 795,250 Q805,255 810,245 Z" fill="#1a0d1a" opacity="0.8"/>
+    <path d="M820,280 Q780,260 740,270 Q720,275 710,280" stroke="#3a1e30" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <path d="M850,290 Q870,310 880,330 Q885,340 880,345" stroke="#3a1e30" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <ellipse cx="845" cy="285" rx="25" ry="20" fill="#2a1525" opacity="0.6"/>
+    <path d="M880,380 Q900,400 920,430 Q930,445 935,455" stroke="#3a1e30" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <path d="M870,390 Q880,430 885,460 Q888,475 890,485" stroke="#3a1e30" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.8"/>
+  </g>
+  <path d="M450,300 Q520,260 600,280 Q680,300 750,290" stroke="#e91e63" stroke-width="2" fill="none" opacity="0.5" filter="url(#glow)"/>
+  <g opacity="0.4"><text x="600" y="275" font-size="36" fill="#ff6b9d">💋</text></g>
+  <g opacity="0.3"><text x="280" y="170" font-size="24">💓</text><text x="830" y="175" font-size="24">💓</text></g>
+  <rect x="0" y="590" width="1200" height="10" fill="#e91e63" opacity="0.5"/>
+</svg>

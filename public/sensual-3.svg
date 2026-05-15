@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0d1a"/>
+      <stop offset="50%" style="stop-color:#2a1525"/>
+      <stop offset="100%" style="stop-color:#1a0d1a"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff6b9d;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#e91e63;stop-opacity:0"/>
+    </radialGradient>
+    <linearGradient id="lipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b9d"/>
+      <stop offset="100%" style="stop-color:#e91e63"/>
+    </linearGradient>
+    <filter id="glow3"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg3)"/>
+  <rect width="800" height="400" fill="url(#centerGlow)"/>
+  <g filter="url(#glow3)">
+    <path d="M320,160 Q340,140 370,148 Q400,155 400,175 Q400,195 370,202 Q340,210 320,190 Q300,175 320,160 Z" fill="url(#lipGrad)" opacity="0.6"/>
+    <path d="M480,160 Q460,140 430,148 Q400,155 400,175 Q400,195 430,202 Q460,210 480,190 Q500,175 480,160 Z" fill="url(#lipGrad)" opacity="0.6"/>
+  </g>
+  <g opacity="0.3">
+    <ellipse cx="200" cy="250" rx="8" ry="5" fill="#e91e63" transform="rotate(-20,200,250)"/>
+    <ellipse cx="600" cy="300" rx="6" ry="4" fill="#ff6b9d" transform="rotate(15,600,300)"/>
+    <ellipse cx="150" cy="320" rx="7" ry="4" fill="#e91e63" transform="rotate(-45,150,320)"/>
+    <ellipse cx="650" cy="250" rx="5" ry="3" fill="#ff6b9d" transform="rotate(30,650,250)"/>
+  </g>
+  <g opacity="0.4">
+    <text x="250" y="130" font-size="28" fill="#ff6b9d">🔥</text>
+    <text x="540" y="130" font-size="28" fill="#ff6b9d">💋</text>
+    <text x="370" y="330" font-size="22" fill="#ff6b9d">💦</text>
+  </g>
+</svg>

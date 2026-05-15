@@ -1,0 +1,308 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a050d;
+  --foreground: #f5e6e8;
+  --card: rgba(42, 21, 37, 0.85);
+  --card-border: #4a2438;
+  --accent: #e91e63;
+  --accent-soft: #ff6b9d;
+  --neon-pink: #ff1493;
+  --neon-purple: #9b30ff;
+  --muted: #a08090;
+  --danger: #ef4444;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-muted: var(--muted);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(233, 30, 99, 0.15), transparent 50%),
+    radial-gradient(ellipse at 80% 30%, rgba(155, 48, 255, 0.1), transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(255, 20, 147, 0.12), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(10, 5, 13, 0.95), transparent 100%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  min-height: 100vh;
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent), var(--neon-purple));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-soft);
+}
+
+/* ===== SEXY ANIMATIONS ===== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes pulseSoft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulseSoft 1.4s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.08);
+  }
+
+  50% {
+    transform: scale(1);
+  }
+
+  75% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(233, 30, 99, 0.4), 0 0 10px rgba(233, 30, 99, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 15px rgba(255, 107, 157, 0.6), 0 0 30px rgba(233, 30, 99, 0.3), 0 0 45px rgba(233, 30, 99, 0.15);
+  }
+}
+
+.animate-neon-pulse {
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+@keyframes drip {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+.animate-drip {
+  animation: drip 3s ease-in-out infinite;
+}
+
+.animate-drip-delayed {
+  animation: drip 3s ease-in-out 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes glowPulse {
+
+  0%,
+  100% {
+    text-shadow: 0 0 7px rgba(255, 107, 157, 0.5), 0 0 15px rgba(233, 30, 99, 0.3);
+  }
+
+  50% {
+    text-shadow: 0 0 12px rgba(255, 107, 157, 0.8), 0 0 25px rgba(233, 30, 99, 0.5), 0 0 40px rgba(233, 30, 99, 0.3);
+  }
+}
+
+.animate-text-glow {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes moanWave {
+
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(1.08);
+  }
+}
+
+.animate-moan {
+  animation: moanWave 2s ease-in-out infinite;
+}
+
+/* ===== UTILITY ===== */
+
+.neon-border {
+  border: 1px solid rgba(233, 30, 99, 0.4);
+  box-shadow: 0 0 10px rgba(233, 30, 99, 0.15), inset 0 0 10px rgba(233, 30, 99, 0.05);
+}
+
+.neon-border-strong {
+  border: 1px solid rgba(255, 107, 157, 0.5);
+  box-shadow: 0 0 15px rgba(233, 30, 99, 0.25), inset 0 0 15px rgba(233, 30, 99, 0.08);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #ff6b9d, #9b30ff, #ff6b9d);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+.gradient-text-pink {
+  background: linear-gradient(90deg, #e91e63, #ff6b9d, #e91e63);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+.chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent), var(--neon-purple));
+  border-radius: 3px;
+}
+
+/* ===== CARD STYLES ===== */
+.sexy-card {
+  background: linear-gradient(145deg, rgba(42, 21, 37, 0.9), rgba(26, 13, 26, 0.95));
+  border: 1px solid rgba(233, 30, 99, 0.25);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.sexy-card:hover {
+  border-color: rgba(255, 107, 157, 0.5);
+  box-shadow: 0 0 20px rgba(233, 30, 99, 0.2), 0 0 40px rgba(155, 48, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ===== CTA BUTTON ===== */
+.sexy-btn {
+  background: linear-gradient(135deg, #e91e63, #9b30ff);
+  color: white;
+  font-weight: 600;
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sexy-btn::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, #ff6b9d, #e91e63, #9b30ff, #e91e63);
+  background-size: 400% 400%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: shimmer 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.sexy-btn:hover::before {
+  opacity: 1;
+}
+
+.sexy-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 30px rgba(233, 30, 99, 0.4), 0 0 60px rgba(155, 48, 255, 0.2);
+}

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+<defs><linearGradient id="b6" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#1a0d1a"/><stop offset="60%" style="stop-color:#2a1525"/><stop offset="100%" style="stop-color:#1a0d1a"/></linearGradient><radialGradient id="pg" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:#9b4d98;stop-opacity:0.1"/><stop offset="100%" style="stop-color:#e91e63;stop-opacity:0"/></radialGradient><filter id="g6"><feGaussianBlur stdDeviation="4"/></filter></defs>
+<rect width="800" height="400" fill="url(#b6)"/><rect width="800" height="400" fill="url(#pg)"/>
+<g filter="url(#g6)" opacity="0.4"><path d="M50,350 Q150,320 250,340 Q350,360 450,330 Q550,300 650,340 Q700,360 750,350 L750,400 L50,400 Z" fill="#4a2438"/></g>
+<g filter="url(#g6)" opacity="0.75">
+<path d="M300,340 Q290,300 300,270 Q310,250 330,245 Q350,240 370,245 Q390,255 395,275 Q400,300 390,340 Z" fill="#4a2438" stroke="#ff6b9d" stroke-width="0.3"/>
+<ellipse cx="320" cy="230" rx="16" ry="20" fill="#4a2438"/>
+<ellipse cx="335" cy="270" rx="12" ry="8" fill="#3a1e30" opacity="0.7"/>
+<ellipse cx="365" cy="272" rx="12" ry="8" fill="#3a1e30" opacity="0.7"/>
+<path d="M390,320 Q420,330 450,350 Q470,360 480,370" stroke="#4a2438" stroke-width="6" fill="none" stroke-linecap="round"/>
+<path d="M380,330 Q350,360 330,380 Q320,390 310,395" stroke="#4a2438" stroke-width="6" fill="none" stroke-linecap="round"/></g>
+<g filter="url(#g6)" opacity="0.75">
+<path d="M460,340 Q450,300 440,275 Q430,255 415,250 Q400,245 385,250 Q375,260 375,275 Q378,295 385,320 L460,340 Z" fill="#3a1e30" stroke="#e91e63" stroke-width="0.3"/>
+<ellipse cx="395" cy="235" rx="16" ry="20" fill="#3a1e30"/>
+<path d="M455,320 Q470,330 485,350" stroke="#3a1e30" stroke-width="6" fill="none" stroke-linecap="round"/>
+<path d="M450,330 Q460,360 465,380" stroke="#3a1e30" stroke-width="6" fill="none" stroke-linecap="round"/></g>
+<g opacity="0.4"><text x="280" y="200" font-size="16" fill="#ff6b9d">😩</text></g>
+</svg>
