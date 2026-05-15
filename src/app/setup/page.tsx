@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { ChipInput } from "@/components/ChipInput";
 import { MODEL_OPTIONS } from "@/lib/models";
@@ -64,10 +64,14 @@ const t_hi = {
 };
 
 export default function SetupPage() {
-  const [profile, setProfile] = useState<CoupleProfile>(() => getProfile());
+  const [profile, setProfile] = useState<CoupleProfile>(DEFAULT_PROFILE);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const { language } = useLanguage();
   const t = language === "hi" ? t_hi : t_en;
+
+  useEffect(() => {
+    queueMicrotask(() => setProfile(getProfile()));
+  }, []);
 
   function update<K extends keyof CoupleProfile>(key: K, value: CoupleProfile[K]) {
     setProfile((p) => ({ ...p, [key]: value }));

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
 import { deleteSession, getSessions } from "@/lib/storage";
@@ -33,9 +33,13 @@ const t_hi = {
 };
 
 export default function SessionsPage() {
-  const [sessions, setSessions] = useState<Session[]>(() => getSessions());
+  const [sessions, setSessions] = useState<Session[]>([]);
   const { language } = useLanguage();
   const t = language === "hi" ? t_hi : t_en;
+
+  useEffect(() => {
+    queueMicrotask(() => setSessions(getSessions()));
+  }, []);
 
   function remove(id: string) {
     if (!confirm(t.deleteConfirm)) return;

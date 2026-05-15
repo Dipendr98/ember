@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type Language = "en" | "hi";
 
@@ -15,11 +15,14 @@ const LanguageContext = createContext<LanguageContextType>({
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>(() => {
-    if (typeof window === "undefined") return "hi";
+  const [language, setLanguage] = useState<Language>("hi");
+
+  useEffect(() => {
     const saved = localStorage.getItem("ember.language") as Language | null;
-    return saved === "en" || saved === "hi" ? saved : "hi";
-  });
+    if (saved === "en" || saved === "hi") {
+      queueMicrotask(() => setLanguage(saved));
+    }
+  }, []);
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
