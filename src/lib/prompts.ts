@@ -178,10 +178,10 @@ export function buildSystemPrompt(args: {
   scenario: Scenario | null;
   characters: Character[];
   intensity: number;
-  language?: "en" | "hi";
+  language?: string;
 }): string {
   const lang = args.language || "hi";
-  if (lang === "en") return buildEnglishSystemPrompt(args);
+  if (lang === "en" || lang === "hinglish") return buildEnglishSystemPrompt(args);
   return buildHindiSystemPrompt(args);
 }
 
@@ -216,7 +216,7 @@ const OPENING_MOODS = [
 export function openingPrompt(
   scenario: Scenario | null,
   characters: Character[],
-  language?: "en" | "hi",
+  language?: string,
 ): string {
   const lang = language || "hi";
   const mood = OPENING_MOODS[Math.floor(Math.random() * OPENING_MOODS.length)];

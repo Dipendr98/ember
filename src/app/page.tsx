@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
-import { Flame, Library, Settings, BookOpen, ArrowRight, Sparkles } from "lucide-react";
+import { Flame, Library, Settings, BookOpen, ArrowRight, Sparkles, MessageCircleHeart } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 const content_en = {
@@ -41,6 +41,13 @@ const content_en = {
       title: "Improvise",
       body: "Skip the library and start a blank scene. Describe what you want and dive in.",
       cta: "Free play",
+    },
+    {
+      href: "/sexchat",
+      icon: MessageCircleHeart,
+      title: "AI Sex Chat",
+      body: "Chat intimately with an AI partner. Pick your gender, choose who you want to chat with, and dive in.",
+      cta: "Start chatting",
     },
   ],
 };
@@ -82,12 +89,19 @@ const content_hi = {
       body: "लाइब्रेरी छोड़ें और एक खाली दृश्य शुरू करें। वर्णन करें कि आप क्या चाहते हैं और शुरू हो जाएं।",
       cta: "फ्री प्ले",
     },
+    {
+      href: "/sexchat",
+      icon: MessageCircleHeart,
+      title: "AI सेक्स चैट",
+      body: "AI पार्टनर के साथ इंटिमेट चैट करो। अपना gender चुनो, किससे चैट करना है वो चुनो, और शुरू करो।",
+      cta: "चैट शुरू करो",
+    },
   ],
 };
 
 export default function Home() {
   const { language } = useLanguage();
-  const t = language === "hi" ? content_hi : content_en;
+  const t = language === "hi" ? content_hi : content_en; // hinglish uses English content
 
   return (
     <Shell>

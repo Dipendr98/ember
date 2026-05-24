@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type Language = "en" | "hi";
+export type Language = "en" | "hi" | "hinglish";
 
 type LanguageContextType = {
   language: Language;
@@ -19,7 +19,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("ember.language") as Language | null;
-    if (saved === "en" || saved === "hi") {
+    if (saved === "en" || saved === "hi" || saved === "hinglish") {
       queueMicrotask(() => setLanguage(saved));
     }
   }, []);

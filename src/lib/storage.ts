@@ -1,9 +1,10 @@
-import type { CoupleProfile, Session } from "./types";
+import type { CoupleProfile, Session, SexChatSession } from "./types";
 import { DEFAULT_MODEL } from "./models";
 
 const AGE_KEY = "ember.age_confirmed";
 const PROFILE_KEY = "ember.couple_profile";
 const SESSIONS_KEY = "ember.sessions";
+const SEXCHAT_SESSIONS_KEY = "ember.sexchat_sessions";
 
 export const DEFAULT_PROFILE: CoupleProfile = {
   partnerA: { name: "", pronouns: "she/her" },
@@ -80,4 +81,36 @@ export function deleteSession(id: string) {
 
 export function newId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// ─── Sex Chat Session Storage ────────────────────────
+export function getSexChatSessions(): SexChatSession[] {
+  if (!isBrowser()) return [];
+  try {
+    const raw = localStorage.getItem(SEXCHAT_SESSIONS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as SexChatSession[];
+  } catch {
+    return [];
+  }
+}
+
+export function getSexChatSession(id: string): SexChatSession | null {
+  return getSexChatSessions().find((s) => s.id === id) ?? null;
+}
+
+export function saveSexChatSession(session: SexChatSession) {
+  if (!isBrowser()) return;
+  const all = getSexChatSessions();
+  const idx = all.findIndex((s) => s.id === session.id);
+  const updated = { ...session, updatedAt: Date.now() };
+  if (idx >= 0) all[idx] = updated;
+  else all.unshift(updated);
+  localStorage.setItem(SEXCHAT_SESSIONS_KEY, JSON.stringify(all));
+}
+
+export function deleteSexChatSession(id: string) {
+  if (!isBrowser()) return;
+  const all = getSexChatSessions().filter((s) => s.id !== id);
+  localStorage.setItem(SEXCHAT_SESSIONS_KEY, JSON.stringify(all));
 }

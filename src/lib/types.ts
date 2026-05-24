@@ -68,3 +68,19 @@ export type ModelOption = {
   notes: string;
   recommended?: boolean;
 };
+
+// ─── AI Sex Chat Types ───────────────────────────────
+export type UserGender = "male" | "female";
+export type ChatLanguage = "en" | "hi" | "hinglish";
+
+export type SexChatSession = {
+  id: string;
+  userName: string;
+  userGender: UserGender;
+  aiGender: UserGender;
+  chatLanguage: ChatLanguage;
+  model: string;
+  messages: ChatMessage[];
+  createdAt: number;
+  updatedAt: number;
+};

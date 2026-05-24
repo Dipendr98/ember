@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Flame, Library, Settings, BookOpen, Globe } from "lucide-react";
+import { Flame, Library, Settings, BookOpen, Globe, MessageCircleHeart } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 
 const links_en = [
@@ -10,6 +10,7 @@ const links_en = [
   { href: "/scenarios", label: "Scenarios", icon: Library },
   { href: "/sessions", label: "Saved", icon: BookOpen },
   { href: "/setup", label: "Couple", icon: Settings },
+  { href: "/sexchat", label: "AI Chat", icon: MessageCircleHeart },
 ];
 
 const links_hi = [
@@ -17,12 +18,13 @@ const links_hi = [
   { href: "/scenarios", label: "परिदृश्य", icon: Library },
   { href: "/sessions", label: "सेव किए गए", icon: BookOpen },
   { href: "/setup", label: "कपल", icon: Settings },
+  { href: "/sexchat", label: "AI चैट", icon: MessageCircleHeart },
 ];
 
 export function Nav() {
   const pathname = usePathname();
   const { language, setLanguage } = useLanguage();
-  const links = language === "hi" ? links_hi : links_en;
+  const links = language === "hi" ? links_hi : links_en; // hinglish uses English labels
 
   return (
     <header className="sticky top-0 z-30 backdrop-blur-md bg-background/80 border-b border-accent/20 shadow-[0_0_30px_rgba(233,30,99,0.12)]">
@@ -35,11 +37,11 @@ export function Nav() {
             </span>
           </Link>
           <button
-            onClick={() => setLanguage(language === "en" ? "hi" : "en")}
+            onClick={() => setLanguage(language === "en" ? "hi" : language === "hi" ? "hinglish" : "en")}
             className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium bg-card hover:bg-accent/20 border border-card-border hover:border-accent/50 transition-colors"
           >
             <Globe className="w-3.5 h-3.5" />
-            {language === "en" ? "हिंदी" : "English"}
+            {language === "en" ? "हिंदी" : language === "hi" ? "Hinglish" : "English"}
           </button>
         </div>
         <nav className="flex items-center gap-1 sm:gap-2">
