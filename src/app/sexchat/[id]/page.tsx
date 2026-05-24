@@ -192,40 +192,62 @@ export default function SexChatPlayPage() {
         ...withUser.messages.map((m) => ({ role: m.role, content: m.content })),
       ];
 
-      const payload = {
-        model: curr.model,
-        messages: requestMessages,
-        temperature: 0.85,
-      };
-
       const controller = new AbortController();
       abortRef.current = controller;
 
-      try {
-        const finalText = await readChatStream(payload, controller.signal, setStreamText);
+      const modelsToTry = [
+        curr.model,
+        ...MODEL_OPTIONS.map((m) => m.id).filter((id) => id !== curr.model),
+      ];
 
-        const assistantMsg: ChatMessage = {
-          id: newId(),
-          role: "assistant",
-          content: finalText || "...",
-          createdAt: Date.now(),
+      let succeeded = false;
+
+      for (const modelId of modelsToTry) {
+        if (controller.signal.aborted) break;
+
+        const payload = {
+          model: modelId,
+          messages: requestMessages,
+          temperature: 0.85,
         };
 
-        const updated: SexChatSession = {
-          ...withUser,
-          messages: [...withUser.messages, assistantMsg],
-          updatedAt: Date.now(),
-        };
-        persist(updated);
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          setError((err as Error).message || "Something went wrong");
+        try {
+          setStreamText("");
+          const finalText = await readChatStream(payload, controller.signal, setStreamText);
+
+          if (!finalText || finalText.trim().length < 5) {
+            continue;
+          }
+
+          const assistantMsg: ChatMessage = {
+            id: newId(),
+            role: "assistant",
+            content: finalText,
+            createdAt: Date.now(),
+          };
+
+          const updated: SexChatSession = {
+            ...withUser,
+            messages: [...withUser.messages, assistantMsg],
+            model: modelId,
+            updatedAt: Date.now(),
+          };
+          persist(updated);
+          succeeded = true;
+          break;
+        } catch (err) {
+          if ((err as Error).name === "AbortError") break;
+          continue;
         }
-      } finally {
-        setStreaming(false);
-        setStreamText("");
-        abortRef.current = null;
       }
+
+      if (!succeeded && !controller.signal.aborted) {
+        setError("All models failed. Please try again.");
+      }
+
+      setStreaming(false);
+      setStreamText("");
+      abortRef.current = null;
     },
     [persist],
   );
