@@ -19,10 +19,10 @@ export const maxDuration = 60;
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 const DEFAULT_NVIDIA_MODEL = "deepseek-ai/deepseek-v4-flash";
-const MAX_OUTPUT_TOKENS = 520;
-const CONTINUATION_TOKENS = 240;
-const UPSTREAM_TIMEOUT_MS = 15000;
-const MAX_AUTO_CONTINUATIONS = 0;
+const MAX_OUTPUT_TOKENS = 2048;
+const CONTINUATION_TOKENS = 1024;
+const UPSTREAM_TIMEOUT_MS = 60000;
+const MAX_AUTO_CONTINUATIONS = 2;
 const MIN_RETRY_TOKENS = 96;
 
 type Provider = "nvidia" | "openrouter";
@@ -49,21 +49,15 @@ function normalizeOpenRouterModel(model: string) {
   return model;
 }
 
-function isOpenRouterFreeModel(model: string) {
-  return model === "openrouter/free" || model.endsWith(":free");
-}
-
 function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string): ModelAttempt[] {
   const attempts: ModelAttempt[] = [];
   const normalizedModel = normalizeOpenRouterModel(model);
   const isExplicitNvidia = model === "nvidia/deepseek-v4-flash";
 
-  // Prefer free OpenRouter routing so low/no-credit keys do not hit paid models.
   if (openRouterKey && !isExplicitNvidia) {
-    const primary = isOpenRouterFreeModel(normalizedModel) ? normalizedModel : "openrouter/free";
     attempts.push({
       provider: "openrouter",
-      model: primary,
+      model: normalizedModel,
       apiKey: openRouterKey,
     });
   }
@@ -72,22 +66,19 @@ function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string
     attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
   }
 
-  // Add configured free/direct fallbacks only. Avoid paid OpenRouter fallbacks.
   for (const option of MODEL_OPTIONS) {
-    if (option.id === model) continue; // Already added as primary
+    if (option.id === model) continue;
 
     if (option.id === "nvidia/deepseek-v4-flash") {
       if (nvidiaKey) {
         attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
       }
-    } else if (openRouterKey && isOpenRouterFreeModel(option.id)) {
-      if (openRouterKey) {
-        attempts.push({
-          provider: "openrouter",
-          model: normalizeOpenRouterModel(option.id),
-          apiKey: openRouterKey,
-        });
-      }
+    } else if (openRouterKey) {
+      attempts.push({
+        provider: "openrouter",
+        model: normalizeOpenRouterModel(option.id),
+        apiKey: openRouterKey,
+      });
     }
   }
 
@@ -118,14 +109,6 @@ function friendlyProviderError(message: string) {
     return "Free AI limit hit for this long reply. I shortened the request and tried the free route; please try again with a shorter message.";
   }
   return message;
-}
-
-function isSexualViolenceRequest(text: string) {
-  return /\b(rape|rapist|non[-\s]?consensual|cnc)\b|बलात्कार|रेप|जबरदस्ती|jabardasti|zabardasti/i.test(text);
-}
-
-function latestUserText(messages: IncomingMessage[]) {
-  return [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
 }
 
 function looksIncomplete(text: string) {
