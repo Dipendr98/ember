@@ -106,7 +106,7 @@ function mergeContinuation(base: string, continuation: string) {
   return second ? `${first}\n\n${second}` : first;
 }
 
-function fallbackAssistantText(language: "en" | "hi", userText: string) {
+function fallbackAssistantText(language: string, userText: string) {
   const topic = userText.trim();
   if (language === "hi") {
     return [

@@ -2,20 +2,40 @@ import type { ModelOption } from "./types";
 
 export const MODEL_OPTIONS: ModelOption[] = [
   {
-    id: "openrouter/free",
-    label: "OpenRouter Free Router",
-    notes: "Automatically selects an available free model on OpenRouter. Best choice when you want the app to run without buying credits.",
+    id: "deepseek/deepseek-r1-0528",
+    label: "DeepSeek R1 (Recommended)",
+    notes: "Latest DeepSeek reasoning model. Very capable, uncensored, and fast for long-form roleplay.",
     recommended: true,
   },
   {
-    id: "google/gemini-2.5-flash:free",
-    label: "Gemini 2.5 Flash (Free)",
-    notes: "Free OpenRouter model with high context. Good fallback when the free router is busy.",
+    id: "deepseek/deepseek-chat",
+    label: "DeepSeek V3 Chat",
+    notes: "Excellent quality for creative writing and roleplay. Uncensored and fast.",
+  },
+  {
+    id: "qwen/qwen3-235b-a22b",
+    label: "Qwen3 235B",
+    notes: "Very large model with excellent creative writing. Great for detailed scenes.",
+  },
+  {
+    id: "mistralai/mistral-nemo",
+    label: "Mistral Nemo",
+    notes: "Fast and uncensored. Good for quick responses with solid quality.",
   },
   {
     id: "nvidia/deepseek-v4-flash",
     label: "NVIDIA DeepSeek V4 Flash",
-    notes: "Uses NVIDIA directly when NVIDIA_API_KEY is set. Backup path if OpenRouter free routing is rate-limited.",
+    notes: "Uses NVIDIA directly when NVIDIA_API_KEY is set.",
+  },
+  {
+    id: "meta-llama/llama-3.3-70b-instruct",
+    label: "Llama 3.3 70B",
+    notes: "Strong quality for roleplay. Slower but more detailed output.",
+  },
+  {
+    id: "google/gemini-2.5-flash:free",
+    label: "Gemini 2.5 Flash (Free)",
+    notes: "Free model. May refuse explicit content. Good fallback for non-explicit scenes.",
   },
 ];
 

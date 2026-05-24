@@ -214,12 +214,13 @@ function ScenarioCard({
 }: {
   scenario: Scenario;
   onStart: (s: Scenario, chars: Character[]) => void;
-  language: "en" | "hi";
+  language: string;
   t: typeof content_en;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const title = language === "hi" && scenario.title_hi ? scenario.title_hi : scenario.title;
-  const tagline = language === "hi" && scenario.tagline_hi ? scenario.tagline_hi : scenario.tagline;
+  const isHindi = language === "hi";
+  const title = isHindi && scenario.title_hi ? scenario.title_hi : scenario.title;
+  const tagline = isHindi && scenario.tagline_hi ? scenario.tagline_hi : scenario.tagline;
 
   return (
     <div className="bg-card border border-card-border rounded-2xl p-5 flex flex-col">
