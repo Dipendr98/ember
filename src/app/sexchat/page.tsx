@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
-import { DEFAULT_MODEL } from "@/lib/models";
+import { SEXCHAT_DEFAULT_MODEL } from "@/lib/models";
 import { newId, saveSexChatSession } from "@/lib/storage";
 import { getRandomAiName } from "@/lib/sexchat-prompts";
 import type { ChatLanguage, SexChatSession, UserGender } from "@/lib/types";
@@ -86,7 +86,7 @@ export default function SexChatSetupPage() {
       aiGender,
       aiName: getRandomAiName(aiGender, chatLanguage),
       chatLanguage,
-      model: DEFAULT_MODEL,
+      model: SEXCHAT_DEFAULT_MODEL,
       messages: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),

@@ -10,6 +10,7 @@ type RequestBody = {
   model: string;
   messages: IncomingMessage[];
   temperature?: number;
+  max_tokens?: number;
 };
 
 export const runtime = "nodejs";
@@ -255,6 +256,7 @@ export async function POST(req: NextRequest) {
     );
   }
   const temperature = body.temperature ?? 0.72;
+  const maxTokens = body.max_tokens ?? MAX_OUTPUT_TOKENS;
   const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey);
   let lastErrorResponse: Response | null = null;
 
@@ -265,6 +267,7 @@ export async function POST(req: NextRequest) {
       attempt.model,
       body.messages,
       temperature,
+      maxTokens,
     );
 
     if (result === null) { continue; }
