@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { DEFAULT_MODEL } from "@/lib/models";
 import { newId, saveSexChatSession } from "@/lib/storage";
+import { getRandomAiName } from "@/lib/sexchat-prompts";
 import type { ChatLanguage, SexChatSession, UserGender } from "@/lib/types";
 import { MessageCircleHeart, Flame } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
@@ -83,6 +84,7 @@ export default function SexChatSetupPage() {
       userName: userName.trim(),
       userGender,
       aiGender,
+      aiName: getRandomAiName(aiGender, chatLanguage),
       chatLanguage,
       model: DEFAULT_MODEL,
       messages: [],

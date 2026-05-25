@@ -78,6 +78,7 @@ export type SexChatSession = {
   userName: string;
   userGender: UserGender;
   aiGender: UserGender;
+  aiName: string;
   chatLanguage: ChatLanguage;
   model: string;
   messages: ChatMessage[];

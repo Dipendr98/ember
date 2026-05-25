@@ -270,82 +270,98 @@ export default function PlayPage() {
         ...baseMessages.map((m) => ({ role: m.role, content: m.content })),
       ];
 
-      const payload = {
-        model: currSession.model,
-        messages: requestMessages,
-        temperature: 0.72,
-      };
-
       const controller = new AbortController();
       abortRef.current = controller;
 
-      try {
-        let finalAssistantText = await readChatStream(
-          payload,
-          controller.signal,
-          setStreamText,
-        );
+      const modelsToTry = [
+        currSession.model,
+        ...MODEL_OPTIONS.map((m) => m.id).filter((id) => id !== currSession.model),
+      ];
 
-        if (!finalAssistantText.trim()) {
-          finalAssistantText = fallbackAssistantText(language, content);
-          setStreamText(finalAssistantText);
-        }
+      let succeeded = false;
 
-        for (let continuationAttempt = 0; continuationAttempt < 2 && looksIncomplete(finalAssistantText); continuationAttempt += 1) {
-          const continuationPayload = {
-            model: currSession.model,
-            messages: [
-              ...requestMessages,
-              { role: "assistant" as const, content: finalAssistantText },
-              {
-                role: "user" as const,
-                content: language === "hi" ? CONTINUE_PROMPT_HI : CONTINUE_PROMPT_EN,
-              },
-            ],
-            temperature: 0.72,
+      for (const modelId of modelsToTry) {
+        if (controller.signal.aborted) break;
+
+        const payload = {
+          model: modelId,
+          messages: requestMessages,
+          temperature: 0.72,
+        };
+
+        try {
+          setStreamText("");
+          let finalAssistantText = await readChatStream(
+            payload,
+            controller.signal,
+            setStreamText,
+          );
+
+          if (!finalAssistantText || finalAssistantText.trim().length < 5) {
+            continue;
+          }
+
+          for (let continuationAttempt = 0; continuationAttempt < 2 && looksIncomplete(finalAssistantText); continuationAttempt += 1) {
+            const continuationPayload = {
+              model: modelId,
+              messages: [
+                ...requestMessages,
+                { role: "assistant" as const, content: finalAssistantText },
+                {
+                  role: "user" as const,
+                  content: language === "hi" ? CONTINUE_PROMPT_HI : CONTINUE_PROMPT_EN,
+                },
+              ],
+              temperature: 0.72,
+            };
+
+            let continuationText = "";
+            try {
+              continuationText = await readChatStream(
+                continuationPayload,
+                controller.signal,
+                (nextText) => setStreamText(mergeContinuation(finalAssistantText, nextText)),
+              );
+            } catch {
+              break;
+            }
+
+            if (continuationText.length > 0) {
+              finalAssistantText = mergeContinuation(finalAssistantText, continuationText);
+            }
+          }
+
+          const assistantMessage: ChatMessage = {
+            id: newId(),
+            role: "assistant",
+            content: finalAssistantText,
+            createdAt: Date.now(),
           };
-
-          let continuationText = "";
-          try {
-            continuationText = await readChatStream(
-              continuationPayload,
-              controller.signal,
-              (nextText) => setStreamText(mergeContinuation(finalAssistantText, nextText)),
-            );
-          } catch {
-            break;
-          }
-
-          if (continuationText.length > 0) {
-            finalAssistantText = mergeContinuation(finalAssistantText, continuationText);
-          }
+          const finalMessages = [...baseMessages, assistantMessage];
+          const updatedSession = { ...withUser, messages: finalMessages, model: modelId, updatedAt: Date.now() };
+          persist(updatedSession);
+          sessionRef.current = updatedSession;
+          succeeded = true;
+          break;
+        } catch (err) {
+          if ((err as Error).name === "AbortError") break;
+          continue;
         }
+      }
 
+      if (!succeeded && !controller.signal.aborted) {
         const assistantMessage: ChatMessage = {
           id: newId(),
           role: "assistant",
-          content: finalAssistantText,
+          content: fallbackAssistantText(language, content),
           createdAt: Date.now(),
         };
         const finalMessages = [...baseMessages, assistantMessage];
         persist({ ...withUser, messages: finalMessages, updatedAt: Date.now() });
-        setStreamText("");
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          const assistantMessage: ChatMessage = {
-            id: newId(),
-            role: "assistant",
-            content: fallbackAssistantText(language, content),
-            createdAt: Date.now(),
-          };
-          const finalMessages = [...baseMessages, assistantMessage];
-          persist({ ...withUser, messages: finalMessages, updatedAt: Date.now() });
-          setStreamText("");
-        }
-      } finally {
-        setStreaming(false);
-        abortRef.current = null;
       }
+      setStreamText("");
+      setStreaming(false);
+      abortRef.current = null;
     },
     [language, persist, systemPrompt],
   );
