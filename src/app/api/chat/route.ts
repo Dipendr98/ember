@@ -14,14 +14,14 @@ type RequestBody = {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 const DEFAULT_NVIDIA_MODEL = "deepseek-ai/deepseek-v4-flash";
 const MAX_OUTPUT_TOKENS = 2048;
 const CONTINUATION_TOKENS = 1024;
-const UPSTREAM_TIMEOUT_MS = 60000;
+const UPSTREAM_TIMEOUT_MS = 90000;
 const MAX_AUTO_CONTINUATIONS = 2;
 const MIN_RETRY_TOKENS = 96;
 
@@ -271,6 +271,8 @@ export async function POST(req: NextRequest) {
 
     if (result.headers.get("Content-Type")?.includes("application/json")) {
       lastErrorResponse = result;
+      // Small delay before retrying next model to avoid rate limit cascades
+      await new Promise((r) => setTimeout(r, 200));
       continue;
     }
 

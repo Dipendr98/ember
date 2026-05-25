@@ -32,8 +32,6 @@ const UI_TEXT = {
     clearChat: "Clear Chat",
     model: "Model",
     chatWith: "Chatting with",
-    male: "Raj",
-    female: "Neha",
   },
   hi: {
     placeholder: "अपना मेसेज टाइप करो... (Enter भेजने के लिए)",
@@ -41,8 +39,6 @@ const UI_TEXT = {
     clearChat: "चैट मिटाओ",
     model: "मॉडल",
     chatWith: "चैट कर रहे हो",
-    male: "राज",
-    female: "नेहा",
   },
   hinglish: {
     placeholder: "Apna message type karo... (Enter to send)",
@@ -50,8 +46,6 @@ const UI_TEXT = {
     clearChat: "Chat Clear Karo",
     model: "Model",
     chatWith: "Chat kar rahe ho",
-    male: "Raj",
-    female: "Neha",
   },
 };
 
@@ -117,10 +111,20 @@ export default function SexChatPlayPage() {
       s.model = DEFAULT_MODEL;
       saveSexChatSession(s);
     }
+    // Backfill aiName for old sessions created before random names
+    if (!s.aiName) {
+      const fallbackNames: Record<string, Record<string, string>> = {
+        male: { hi: "राज", en: "Raj", hinglish: "Raj" },
+        female: { hi: "नेहा", en: "Neha", hinglish: "Neha" },
+      };
+      s.aiName = fallbackNames[s.aiGender]?.[s.chatLanguage] ?? (s.aiGender === "male" ? "Raj" : "Neha");
+      saveSexChatSession(s);
+    }
     // Auto-greet if no messages
     if (s.messages.length === 0) {
       const greeting = sexChatGreeting({
         userName: s.userName,
+        aiName: s.aiName,
         aiGender: s.aiGender,
         chatLanguage: s.chatLanguage,
       });
@@ -184,6 +188,7 @@ export default function SexChatPlayPage() {
         userName: curr.userName,
         userGender: curr.userGender,
         aiGender: curr.aiGender,
+        aiName: curr.aiName,
         chatLanguage: curr.chatLanguage,
       });
 
@@ -265,6 +270,7 @@ export default function SexChatPlayPage() {
     if (!curr) return;
     const greeting = sexChatGreeting({
       userName: curr.userName,
+      aiName: curr.aiName,
       aiGender: curr.aiGender,
       chatLanguage: curr.chatLanguage,
     });
@@ -292,9 +298,7 @@ export default function SexChatPlayPage() {
     );
   }
 
-  const aiDisplayName = session.aiGender === "male"
-    ? (session.chatLanguage === "hi" ? "राज" : "Raj")
-    : (session.chatLanguage === "hi" ? "नेहा" : "Neha");
+  const aiDisplayName = session.aiName;
 
   const aiAvatar = session.aiGender === "male" ? "🧑" : "👩";
 
