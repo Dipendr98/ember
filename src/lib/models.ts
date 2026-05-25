@@ -40,3 +40,15 @@ export const MODEL_OPTIONS: ModelOption[] = [
 ];
 
 export const DEFAULT_MODEL = MODEL_OPTIONS[0].id;
+
+// For sex chat, use a fast model (no "thinking" phase) since messages are short
+export const SEXCHAT_DEFAULT_MODEL = "deepseek/deepseek-chat";
+
+// Fast models that respond quickly (no reasoning/thinking phase)
+export const FAST_MODELS = new Set([
+  "deepseek/deepseek-chat",
+  "mistralai/mistral-nemo",
+  "nvidia/deepseek-v4-flash",
+  "meta-llama/llama-3.3-70b-instruct",
+  "google/gemini-2.5-flash:free",
+]);

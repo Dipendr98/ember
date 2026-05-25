@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { Shell } from "@/components/Shell";
-import { MODEL_OPTIONS, DEFAULT_MODEL } from "@/lib/models";
+import { MODEL_OPTIONS, SEXCHAT_DEFAULT_MODEL, FAST_MODELS } from "@/lib/models";
 import { buildSexChatSystemPrompt, sexChatGreeting } from "@/lib/sexchat-prompts";
 import {
   getSexChatSession,
@@ -54,6 +54,7 @@ async function readChatStream(
     model: string;
     messages: { role: "system" | "user" | "assistant"; content: string }[];
     temperature: number;
+    max_tokens?: number;
   },
   signal: AbortSignal,
   onText: (text: string) => void,
@@ -108,7 +109,7 @@ export default function SexChatPlayPage() {
     }
     const knownModels = MODEL_OPTIONS.map((m) => m.id);
     if (!knownModels.includes(s.model)) {
-      s.model = DEFAULT_MODEL;
+      s.model = SEXCHAT_DEFAULT_MODEL;
       saveSexChatSession(s);
     }
     // Backfill aiName for old sessions created before random names
@@ -200,10 +201,13 @@ export default function SexChatPlayPage() {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const modelsToTry = [
-        curr.model,
-        ...MODEL_OPTIONS.map((m) => m.id).filter((id) => id !== curr.model),
+      // Order: current model first, then fast models, then slow (reasoning) models
+      const otherModels = MODEL_OPTIONS.map((m) => m.id).filter((id) => id !== curr.model);
+      const fastFirst = [
+        ...otherModels.filter((id) => FAST_MODELS.has(id)),
+        ...otherModels.filter((id) => !FAST_MODELS.has(id)),
       ];
+      const modelsToTry = [curr.model, ...fastFirst];
 
       let succeeded = false;
 
@@ -214,6 +218,7 @@ export default function SexChatPlayPage() {
           model: modelId,
           messages: requestMessages,
           temperature: 0.85,
+          max_tokens: 512,
         };
 
         try {
