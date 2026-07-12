@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "A private, AI-powered role-play companion for couples. Build scenarios, characters, and slow-burn stories together.",
   other: {
     // AdSense site-verification meta tag — Google's "meta tag" verify method.
-    "google-adsense-account": "ca-pub-8604216728521266",
+    "google-adsense-account": "ca-pub-4281817564741172",
   },
 };
 
@@ -45,7 +45,7 @@ export default function RootLayout({
             snippet. React hoists async scripts into <head>. */}
         <script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8604216728521266"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4281817564741172"
           crossOrigin="anonymous"
         />
         <LanguageProvider>{children}</LanguageProvider>
