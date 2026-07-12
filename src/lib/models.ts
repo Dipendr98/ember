@@ -2,10 +2,20 @@ import type { ModelOption } from "./types";
 
 export const MODEL_OPTIONS: ModelOption[] = [
   {
-    id: "deepseek/deepseek-r1-0528",
-    label: "DeepSeek R1 (Recommended)",
-    notes: "Latest DeepSeek reasoning model. Very capable, uncensored, and fast for long-form roleplay.",
+    id: "google/gemini-3.5-flash",
+    label: "Gemini 3.5 Flash (Recommended)",
+    notes: "Google Gemini via GEMINI_API_KEY with all safety filters disabled. Fast and reliable.",
     recommended: true,
+  },
+  {
+    id: "google/gemini-flash-latest",
+    label: "Gemini Flash (Latest)",
+    notes: "Latest Gemini Flash model via GEMINI_API_KEY with all safety filters disabled.",
+  },
+  {
+    id: "deepseek/deepseek-r1-0528",
+    label: "DeepSeek R1",
+    notes: "Latest DeepSeek reasoning model. Very capable, uncensored, and fast for long-form roleplay.",
   },
   {
     id: "deepseek/deepseek-chat",
@@ -42,10 +52,12 @@ export const MODEL_OPTIONS: ModelOption[] = [
 export const DEFAULT_MODEL = MODEL_OPTIONS[0].id;
 
 // For sex chat, use a fast model (no "thinking" phase) since messages are short
-export const SEXCHAT_DEFAULT_MODEL = "deepseek/deepseek-chat";
+export const SEXCHAT_DEFAULT_MODEL = "google/gemini-3.5-flash";
 
 // Fast models that respond quickly (no reasoning/thinking phase)
 export const FAST_MODELS = new Set([
+  "google/gemini-3.5-flash",
+  "google/gemini-flash-latest",
   "deepseek/deepseek-chat",
   "mistralai/mistral-nemo",
   "nvidia/deepseek-v4-flash",

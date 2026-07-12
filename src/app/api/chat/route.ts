@@ -19,14 +19,25 @@ export const maxDuration = 120;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_NVIDIA_MODEL = "deepseek-ai/deepseek-v4-flash";
+const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
+const GEMINI_FALLBACK_MODELS = ["gemini-3.5-flash", "gemini-flash-latest", "gemini-3-flash-preview"];
+
+const GEMINI_SAFETY_SETTINGS = [
+  { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" },
+];
 const MAX_OUTPUT_TOKENS = 2048;
 const CONTINUATION_TOKENS = 1024;
 const UPSTREAM_TIMEOUT_MS = 90000;
 const MAX_AUTO_CONTINUATIONS = 2;
 const MIN_RETRY_TOKENS = 96;
 
-type Provider = "nvidia" | "openrouter";
+type Provider = "nvidia" | "openrouter" | "gemini";
 
 type ModelAttempt = {
   provider: Provider;
@@ -39,23 +50,102 @@ type StreamPayload = {
     delta?: { content?: string };
     finish_reason?: string | null;
   }[];
+  candidates?: {
+    content?: { parts?: { text?: string }[] };
+    finishReason?: string | null;
+  }[];
   error?: {
     message?: string;
     code?: string | number;
   };
 };
 
+function extractDelta(json: StreamPayload): { delta: string; finishReason: string | null } {
+  if (json.candidates) {
+    const candidate = json.candidates[0];
+    const delta = candidate?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    const reason = candidate?.finishReason ?? null;
+    const finishReason = reason === "MAX_TOKENS" ? "length" : reason === "STOP" ? "stop" : reason;
+    return { delta, finishReason };
+  }
+  return {
+    delta: json.choices?.[0]?.delta?.content ?? "",
+    finishReason: json.choices?.[0]?.finish_reason ?? null,
+  };
+}
+
+function isGeminiModel(model: string) {
+  return model.startsWith("google/gemini-") && !model.includes(":free");
+}
+
+function toGeminiModel(model: string) {
+  const name = model.replace(/^google\//, "");
+  return name || DEFAULT_GEMINI_MODEL;
+}
+
+function buildGeminiPayload(
+  messages: IncomingMessage[],
+  temperature: number,
+  maxTokens: number,
+) {
+  const systemText = messages
+    .filter((m) => m.role === "system")
+    .map((m) => m.content)
+    .join("\n\n");
+  const contents = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+  if (contents.length === 0) {
+    contents.push({ role: "user", parts: [{ text: "Start." }] });
+  }
+
+  // Prefill an in-character assistant opener so Gemini continues the roleplay
+  // instead of emitting a top-level refusal. The prefill ends on a blank line
+  // so the streamed continuation reads as clean standalone text.
+  if (contents[contents.length - 1].role === "user") {
+    contents.push({ role: "model", parts: [{ text: "🔥\n\n" }] });
+  }
+
+  const payload: Record<string, unknown> = {
+    contents,
+    safetySettings: GEMINI_SAFETY_SETTINGS,
+    generationConfig: {
+      temperature,
+      topP: 0.9,
+      maxOutputTokens: maxTokens,
+    },
+  };
+  if (systemText) {
+    payload.systemInstruction = { parts: [{ text: systemText }] };
+  }
+  return payload;
+}
+
 function normalizeOpenRouterModel(model: string) {
   if (model === "nvidia/deepseek-v4-flash") return "deepseek/deepseek-v4-flash";
   return model;
 }
 
-function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string): ModelAttempt[] {
+function buildAttempts(
+  model: string,
+  openRouterKey?: string,
+  nvidiaKey?: string,
+  geminiKey?: string,
+): ModelAttempt[] {
   const attempts: ModelAttempt[] = [];
   const normalizedModel = normalizeOpenRouterModel(model);
   const isExplicitNvidia = model === "nvidia/deepseek-v4-flash";
+  const isExplicitGemini = isGeminiModel(model);
 
-  if (openRouterKey && !isExplicitNvidia) {
+  if (isExplicitGemini && geminiKey) {
+    attempts.push({ provider: "gemini", model: toGeminiModel(model), apiKey: geminiKey });
+  }
+
+  if (openRouterKey && !isExplicitNvidia && !isExplicitGemini) {
     attempts.push({
       provider: "openrouter",
       model: normalizedModel,
@@ -70,7 +160,11 @@ function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string
   for (const option of MODEL_OPTIONS) {
     if (option.id === model) continue;
 
-    if (option.id === "nvidia/deepseek-v4-flash") {
+    if (isGeminiModel(option.id)) {
+      if (geminiKey) {
+        attempts.push({ provider: "gemini", model: toGeminiModel(option.id), apiKey: geminiKey });
+      }
+    } else if (option.id === "nvidia/deepseek-v4-flash") {
       if (nvidiaKey) {
         attempts.push({ provider: "nvidia", model: DEFAULT_NVIDIA_MODEL, apiKey: nvidiaKey });
       }
@@ -80,6 +174,12 @@ function buildAttempts(model: string, openRouterKey?: string, nvidiaKey?: string
         model: normalizeOpenRouterModel(option.id),
         apiKey: openRouterKey,
       });
+    }
+  }
+
+  if (geminiKey) {
+    for (const fallback of GEMINI_FALLBACK_MODELS) {
+      attempts.push({ provider: "gemini", model: fallback, apiKey: geminiKey });
     }
   }
 
@@ -143,26 +243,38 @@ async function tryModel(
   maxTokens = MAX_OUTPUT_TOKENS,
 ): Promise<Response | null> {
   const requestUpstream = async (tokenLimit: number) => {
-    const payload: Record<string, unknown> = {
-      model,
-      messages,
-      temperature,
-      top_p: 0.9,
-      stream: true,
-      max_tokens: tokenLimit,
-    };
-
-    if (provider === "openrouter") {
-      payload.provider = {
-        sort: "throughput",
-        allow_fallbacks: true,
-      };
-    }
-
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
     try {
+      if (provider === "gemini") {
+        return await fetch(`${GEMINI_BASE_URL}/${model}:streamGenerateContent?alt=sse`, {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            "x-goog-api-key": apiKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(buildGeminiPayload(messages, temperature, tokenLimit)),
+        });
+      }
+
+      const payload: Record<string, unknown> = {
+        model,
+        messages,
+        temperature,
+        top_p: 0.9,
+        stream: true,
+        max_tokens: tokenLimit,
+      };
+
+      if (provider === "openrouter") {
+        payload.provider = {
+          sort: "throughput",
+          allow_fallbacks: true,
+        };
+      }
+
       return await fetch(provider === "nvidia" ? NVIDIA_URL : OPENROUTER_URL, {
         method: "POST",
         signal: controller.signal,
@@ -232,9 +344,10 @@ async function tryModel(
 export async function POST(req: NextRequest) {
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const nvidiaKey = process.env.NVIDIA_API_KEY;
-  if (!openRouterKey && !nvidiaKey) {
+  const geminiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+  if (!openRouterKey && !nvidiaKey && !geminiKey) {
     return new Response(
-      JSON.stringify({ error: "Set OPENROUTER_API_KEY or NVIDIA_API_KEY." }),
+      JSON.stringify({ error: "Set GEMINI_API_KEY, OPENROUTER_API_KEY, or NVIDIA_API_KEY." }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -257,7 +370,7 @@ export async function POST(req: NextRequest) {
   }
   const temperature = body.temperature ?? 0.72;
   const maxTokens = body.max_tokens ?? MAX_OUTPUT_TOKENS;
-  const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey);
+  const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey, geminiKey);
   let lastErrorResponse: Response | null = null;
 
   for (const attempt of modelAttempts) {
@@ -361,8 +474,9 @@ export async function POST(req: NextRequest) {
                   throw new Error(json.error.message ?? "The model returned a streaming error.");
                 }
 
-                finishReason = json.choices?.[0]?.finish_reason ?? finishReason;
-                const delta = json.choices?.[0]?.delta?.content ?? "";
+                const extracted = extractDelta(json);
+                finishReason = extracted.finishReason ?? finishReason;
+                const delta = extracted.delta;
                 if (delta) {
                   assistantText += delta;
                   controller.enqueue(encoder.encode(delta));
