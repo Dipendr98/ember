@@ -32,6 +32,9 @@ const GEMINI_SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" },
 ];
 const MAX_OUTPUT_TOKENS = 2048;
+// Cap how much chat history is sent upstream — a shorter prompt means the
+// model starts replying sooner. The system prompt is always kept.
+const MAX_HISTORY_MESSAGES = 24;
 const CONTINUATION_TOKENS = 1024;
 const UPSTREAM_TIMEOUT_MS = 90000;
 const MAX_AUTO_CONTINUATIONS = 2;
@@ -87,6 +90,7 @@ function buildGeminiPayload(
   messages: IncomingMessage[],
   temperature: number,
   maxTokens: number,
+  disableThinking = true,
 ) {
   const systemText = messages
     .filter((m) => m.role === "system")
@@ -117,6 +121,9 @@ function buildGeminiPayload(
       temperature,
       topP: 0.9,
       maxOutputTokens: maxTokens,
+      // Skip the model's internal "thinking" phase so the first token
+      // arrives immediately instead of after several seconds.
+      ...(disableThinking ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
     },
   };
   if (systemText) {
@@ -242,7 +249,7 @@ async function tryModel(
   temperature: number,
   maxTokens = MAX_OUTPUT_TOKENS,
 ): Promise<Response | null> {
-  const requestUpstream = async (tokenLimit: number) => {
+  const requestUpstream = async (tokenLimit: number, disableThinking = true) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
@@ -255,7 +262,7 @@ async function tryModel(
             "x-goog-api-key": apiKey,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(buildGeminiPayload(messages, temperature, tokenLimit)),
+          body: JSON.stringify(buildGeminiPayload(messages, temperature, tokenLimit, disableThinking)),
         });
       }
 
@@ -297,6 +304,12 @@ async function tryModel(
 
   try {
     let upstream = await requestUpstream(maxTokens);
+
+    // Some Gemini models reject thinkingConfig with a 400 — retry without it.
+    if (provider === "gemini" && upstream.status === 400) {
+      await upstream.text().catch(() => "");
+      upstream = await requestUpstream(maxTokens, false);
+    }
 
     if (upstream.status === 429 || upstream.status === 402 || upstream.status >= 500) {
       const text = await upstream.text().catch(() => "");
@@ -370,6 +383,19 @@ export async function POST(req: NextRequest) {
   }
   const temperature = body.temperature ?? 0.72;
   const maxTokens = body.max_tokens ?? MAX_OUTPUT_TOKENS;
+
+  // Trim old history: keep system messages plus the most recent turns.
+  const systemMessages = body.messages.filter((m) => m.role === "system");
+  let chatMessages = body.messages.filter((m) => m.role !== "system");
+  if (chatMessages.length > MAX_HISTORY_MESSAGES) {
+    chatMessages = chatMessages.slice(-MAX_HISTORY_MESSAGES);
+    // Don't start the trimmed window on an assistant turn.
+    while (chatMessages.length > 0 && chatMessages[0].role === "assistant") {
+      chatMessages = chatMessages.slice(1);
+    }
+  }
+  const requestMessages = [...systemMessages, ...chatMessages];
+
   const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey, geminiKey);
   let lastErrorResponse: Response | null = null;
 
@@ -378,7 +404,7 @@ export async function POST(req: NextRequest) {
       attempt.provider,
       attempt.apiKey,
       attempt.model,
-      body.messages,
+      requestMessages,
       temperature,
       maxTokens,
     );
@@ -422,7 +448,7 @@ export async function POST(req: NextRequest) {
 
             controller.enqueue(encoder.encode("\n\n"));
             const continuationMessages: IncomingMessage[] = [
-              ...body.messages,
+              ...requestMessages,
               { role: "assistant", content: assistantText },
               {
                 role: "user",
