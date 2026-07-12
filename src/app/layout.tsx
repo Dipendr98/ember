@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "Ember — Intimate Role-Play for Couples",
   description:
     "A private, AI-powered role-play companion for couples. Build scenarios, characters, and slow-burn stories together.",
+  other: {
+    // AdSense site-verification meta tag — Google's "meta tag" verify method.
+    "google-adsense-account": "ca-pub-8604216728521266",
+  },
 };
 
 export const viewport: Viewport = {
