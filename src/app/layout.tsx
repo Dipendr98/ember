@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/components/LanguageContext";
@@ -41,13 +40,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* beforeInteractive puts the tag in the server-rendered <head> so the
-            AdSense verification crawler can see it in the initial HTML. */}
-        <Script
+        {/* Plain <script> (not next/script) so the literal tag appears in the
+            served HTML — the AdSense verification crawler looks for the exact
+            snippet. React hoists async scripts into <head>. */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8604216728521266"
           crossOrigin="anonymous"
-          strategy="beforeInteractive"
         />
         <LanguageProvider>{children}</LanguageProvider>
       </body>
