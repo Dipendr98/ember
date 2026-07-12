@@ -217,7 +217,9 @@ export default function SexChatPlayPage() {
         const payload = {
           model: modelId,
           messages: requestMessages,
-          temperature: 0.85,
+          // Higher temperature keeps replies varied and human — avoids the
+          // model falling into the same repetitive phrasing every message.
+          temperature: 0.95,
           max_tokens: 512,
         };
 
