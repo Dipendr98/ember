@@ -327,20 +327,6 @@ export default function SexChatPlayPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <select
-              value={session.model}
-              onChange={(e) => {
-                const updated = { ...session, model: e.target.value };
-                persist(updated);
-              }}
-              className="bg-background/60 border border-card-border rounded-lg px-2 py-1 text-xs outline-none focus:border-accent"
-            >
-              {MODEL_OPTIONS.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
             <button
               type="button"
               onClick={handleClearChat}

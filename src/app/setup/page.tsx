@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { ChipInput } from "@/components/ChipInput";
-import { MODEL_OPTIONS } from "@/lib/models";
 import { DEFAULT_PROFILE, getProfile, saveProfile } from "@/lib/storage";
 import type { CoupleProfile, Pronouns } from "@/lib/types";
 import { Save, RotateCcw, Check } from "lucide-react";
@@ -27,9 +26,6 @@ const t_en = {
   intensity: "Default intensity",
   intensityHint: "You can change this any time inside a scene.",
   intensityScale: "1 = slow-burn teasing • 5 = maximum heat",
-  model: "Preferred AI model",
-  modelHint: "Pick a model. Flash is fastest; fallbacks are available.",
-  recommended: "(recommended)",
   reset: "Reset",
   resetConfirm: "Reset your couple profile to defaults?",
   saved: "Saved",
@@ -53,9 +49,6 @@ const t_hi = {
   intensity: "डिफ़ॉल्ट तीव्रता",
   intensityHint: "आप इसे किसी भी सीन में बदल सकते हैं।",
   intensityScale: "1 = slow-burn • 5 = maximum heat",
-  model: "पसंदीदा AI मॉडल",
-  modelHint: "मॉडल चुनें। Flash fastest है; fallback models भी हैं।",
-  recommended: "(सुझाया गया)",
   reset: "रीसेट",
   resetConfirm: "क्या आप कपल प्रोफ़ाइल को डिफ़ॉल्ट पर रीसेट करना चाहते हैं?",
   saved: "सेव हो गया",
@@ -164,23 +157,6 @@ export default function SetupPage() {
             </p>
           </Section>
 
-          <Section title={t.model} hint={t.modelHint}>
-            <select
-              value={profile.preferredModel}
-              onChange={(e) => update("preferredModel", e.target.value)}
-              className="w-full bg-background/40 border border-card-border rounded-xl px-3 py-2 outline-none focus:border-accent transition-colors"
-            >
-              {MODEL_OPTIONS.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                  {m.recommended ? `  ${t.recommended}` : ""}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-muted mt-2 leading-relaxed">
-              {MODEL_OPTIONS.find((m) => m.id === profile.preferredModel)?.notes}
-            </p>
-          </Section>
         </div>
 
         <div className="sticky bottom-4 mt-10 flex items-center justify-between gap-3 bg-card/95 backdrop-blur border border-card-border rounded-2xl p-3 shadow-lg">

@@ -638,23 +638,6 @@ export default function PlayPage() {
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-accent-soft mb-2">
-                  {language === "hi" ? "मॉडल" : "Model"}
-                </h3>
-                <select
-                  value={session.model}
-                  onChange={(e) => persist({ ...session, model: e.target.value })}
-                  className="w-full bg-background/40 border border-card-border rounded-xl px-3 py-2 outline-none focus:border-accent transition-colors text-sm"
-                >
-                  {MODEL_OPTIONS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
                 <h3 className="text-sm font-semibold text-accent-soft mb-2 flex items-center gap-1.5">
                   <Users className="w-4 h-4" /> {language === "hi" ? "किरदार" : "Characters"}
                 </h3>
