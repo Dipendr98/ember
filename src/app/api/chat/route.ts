@@ -103,6 +103,13 @@ function buildGeminiPayload(
     contents.push({ role: "user", parts: [{ text: "Start." }] });
   }
 
+  // Prefill an in-character assistant opener so Gemini continues the roleplay
+  // instead of emitting a top-level refusal. The prefill ends on a blank line
+  // so the streamed continuation reads as clean standalone text.
+  if (contents[contents.length - 1].role === "user") {
+    contents.push({ role: "model", parts: [{ text: "🔥\n\n" }] });
+  }
+
   const payload: Record<string, unknown> = {
     contents,
     safetySettings: GEMINI_SAFETY_SETTINGS,
