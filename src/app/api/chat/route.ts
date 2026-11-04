@@ -490,10 +490,15 @@ export async function POST(req: NextRequest) {
       maxTokens,
     );
 
-    if (result === null) { continue; }
+    if (result === null) {
+      console.warn(`[chat] ${attempt.provider}:${attempt.model} failed: network error or timeout`);
+      continue;
+    }
 
     if (result.headers.get("Content-Type")?.includes("application/json")) {
       lastErrorResponse = result;
+      const detail = await result.clone().text().catch(() => "");
+      console.warn(`[chat] ${attempt.provider}:${attempt.model} failed: ${result.status} ${detail.slice(0, 300)}`);
       // Small delay before retrying next model to avoid rate limit cascades
       await new Promise((r) => setTimeout(r, 200));
       continue;
@@ -616,6 +621,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache",
         "X-Accel-Buffering": "no",
+        "X-Ember-Provider": `${attempt.provider}:${attempt.model}`,
       },
     });
   }
