@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { MODEL_OPTIONS } from "@/lib/models";
+import { GEMMA_MODEL_ID, MODEL_OPTIONS } from "@/lib/models";
 import { MINOR_BLOCK_MESSAGE, MINOR_RULE, mentionsMinor } from "@/lib/minor-guard";
 
 type IncomingMessage = {
@@ -44,7 +44,7 @@ const MIN_RETRY_TOKENS = 96;
 // purpose. Only guess "cut off" for longer replies like story turns.
 const MIN_LENGTH_FOR_INCOMPLETE_CHECK = 400;
 
-type Provider = "nvidia" | "openrouter" | "gemini";
+type Provider = "nvidia" | "openrouter" | "gemini" | "gemma";
 
 type ModelAttempt = {
   provider: Provider;
@@ -136,6 +136,38 @@ function buildGeminiPayload(
   return payload;
 }
 
+// The self-hosted Gemma endpoint takes one `prompt` string and answers with
+// `{ "text": "..." }` in a single response (no streaming, no API key).
+function buildGemmaPrompt(messages: IncomingMessage[]) {
+  const system = messages
+    .filter((m) => m.role === "system")
+    .map((m) => m.content)
+    .join("\n\n");
+  const turns = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => `${m.role === "assistant" ? "ASSISTANT" : "USER"}: ${m.content}`)
+    .join("\n\n");
+  return [
+    system,
+    "Below is the conversation so far. Write only the next ASSISTANT reply — never write USER lines and never add the \"ASSISTANT:\" label.",
+    turns,
+    "ASSISTANT:",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+// Wrap Gemma's single JSON reply as an OpenAI-style SSE stream so the rest of
+// the pipeline (streaming, auto-continuation) handles it like any provider.
+function gemmaTextToSse(text: string) {
+  const clean = text.replace(/^\s*ASSISTANT:\s*/i, "");
+  const chunk = { choices: [{ delta: { content: clean }, finish_reason: "stop" }] };
+  return new Response(`data: ${JSON.stringify(chunk)}\n\ndata: [DONE]\n\n`, {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+}
+
 function normalizeOpenRouterModel(model: string) {
   if (model === "nvidia/deepseek-v4-flash") return "deepseek/deepseek-v4-flash";
   return model;
@@ -146,8 +178,14 @@ function buildAttempts(
   openRouterKey?: string,
   nvidiaKey?: string,
   geminiKey?: string,
+  gemmaUrl?: string,
 ): ModelAttempt[] {
   const attempts: ModelAttempt[] = [];
+
+  // For the gemma provider, apiKey carries the endpoint URL (it needs no key).
+  if (model === GEMMA_MODEL_ID && gemmaUrl) {
+    attempts.push({ provider: "gemma", model: GEMMA_MODEL_ID, apiKey: gemmaUrl });
+  }
   const normalizedModel = normalizeOpenRouterModel(model);
   const isExplicitNvidia = model === "nvidia/deepseek-v4-flash";
   const isExplicitGemini = isGeminiModel(model);
@@ -156,7 +194,7 @@ function buildAttempts(
     attempts.push({ provider: "gemini", model: toGeminiModel(model), apiKey: geminiKey });
   }
 
-  if (openRouterKey && !isExplicitNvidia && !isExplicitGemini) {
+  if (openRouterKey && !isExplicitNvidia && !isExplicitGemini && model !== GEMMA_MODEL_ID) {
     attempts.push({
       provider: "openrouter",
       model: normalizedModel,
@@ -171,7 +209,11 @@ function buildAttempts(
   for (const option of MODEL_OPTIONS) {
     if (option.id === model) continue;
 
-    if (isGeminiModel(option.id)) {
+    if (option.id === GEMMA_MODEL_ID) {
+      if (gemmaUrl) {
+        attempts.push({ provider: "gemma", model: GEMMA_MODEL_ID, apiKey: gemmaUrl });
+      }
+    } else if (isGeminiModel(option.id)) {
       if (geminiKey) {
         attempts.push({ provider: "gemini", model: toGeminiModel(option.id), apiKey: geminiKey });
       }
@@ -258,6 +300,22 @@ async function tryModel(
     const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
     try {
+      if (provider === "gemma") {
+        const res = await fetch(apiKey, {
+          method: "POST",
+          signal: controller.signal,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: buildGemmaPrompt(messages) }),
+        });
+        if (!res.ok) return res;
+        const json = (await res.json().catch(() => null)) as { text?: string } | null;
+        const text = json?.text?.trim();
+        if (!text) {
+          return new Response(JSON.stringify({ error: "Gemma returned no text" }), { status: 502 });
+        }
+        return gemmaTextToSse(text);
+      }
+
       if (provider === "gemini") {
         return await fetch(`${GEMINI_BASE_URL}/${model}:streamGenerateContent?alt=sse`, {
           method: "POST",
@@ -362,9 +420,10 @@ export async function POST(req: NextRequest) {
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const nvidiaKey = process.env.NVIDIA_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
-  if (!openRouterKey && !nvidiaKey && !geminiKey) {
+  const gemmaUrl = process.env.GEMMA_API_URL;
+  if (!openRouterKey && !nvidiaKey && !geminiKey && !gemmaUrl) {
     return new Response(
-      JSON.stringify({ error: "Set GEMINI_API_KEY, OPENROUTER_API_KEY, or NVIDIA_API_KEY." }),
+      JSON.stringify({ error: "Set GEMMA_API_URL, GEMINI_API_KEY, OPENROUTER_API_KEY, or NVIDIA_API_KEY." }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -418,7 +477,7 @@ export async function POST(req: NextRequest) {
     ...chatMessages,
   ];
 
-  const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey, geminiKey);
+  const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey, geminiKey, gemmaUrl);
   let lastErrorResponse: Response | null = null;
 
   for (const attempt of modelAttempts) {
