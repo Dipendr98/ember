@@ -191,6 +191,7 @@ export default function SexChatPlayPage() {
         aiGender: curr.aiGender,
         aiName: curr.aiName,
         chatLanguage: curr.chatLanguage,
+        messages: withUser.messages,
       });
 
       const requestMessages = [
@@ -227,7 +228,8 @@ export default function SexChatPlayPage() {
           setStreamText("");
           const finalText = await readChatStream(payload, controller.signal, setStreamText);
 
-          if (!finalText || finalText.trim().length < 5) {
+          // Short human replies ("hmm", "aur?") are valid — only skip empty ones.
+          if (!finalText || !finalText.trim()) {
             continue;
           }
 

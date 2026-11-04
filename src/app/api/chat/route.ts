@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { MODEL_OPTIONS } from "@/lib/models";
+import { MINOR_BLOCK_MESSAGE, MINOR_RULE, mentionsMinor } from "@/lib/minor-guard";
 
 type IncomingMessage = {
   role: "system" | "user" | "assistant";
@@ -39,6 +40,9 @@ const CONTINUATION_TOKENS = 1024;
 const UPSTREAM_TIMEOUT_MS = 90000;
 const MAX_AUTO_CONTINUATIONS = 2;
 const MIN_RETRY_TOKENS = 96;
+// Short chat texts ("hmm 🥵", "aur?") often end without punctuation on
+// purpose. Only guess "cut off" for longer replies like story turns.
+const MIN_LENGTH_FOR_INCOMPLETE_CHECK = 400;
 
 type Provider = "nvidia" | "openrouter" | "gemini";
 
@@ -394,7 +398,25 @@ export async function POST(req: NextRequest) {
       chatMessages = chatMessages.slice(1);
     }
   }
-  const requestMessages = [...systemMessages, ...chatMessages];
+
+  // Under-18 block: check the client-built system prompt (custom scenarios,
+  // characters) and the latest user turn, then always append the hard rule.
+  const lastUserMessage = [...chatMessages].reverse().find((m) => m.role === "user");
+  const textToCheck = [...systemMessages, ...(lastUserMessage ? [lastUserMessage] : [])]
+    .map((m) => m.content)
+    .join("\n");
+  if (mentionsMinor(textToCheck)) {
+    return new Response(JSON.stringify({ error: MINOR_BLOCK_MESSAGE }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const requestMessages: IncomingMessage[] = [
+    ...systemMessages,
+    { role: "system", content: MINOR_RULE },
+    ...chatMessages,
+  ];
 
   const modelAttempts = buildAttempts(body.model, openRouterKey, nvidiaKey, geminiKey);
   let lastErrorResponse: Response | null = null;
@@ -442,7 +464,9 @@ export async function POST(req: NextRequest) {
             const needsContinuation =
               hasNewText &&
               continuationCount < MAX_AUTO_CONTINUATIONS &&
-              (finishReason === "length" || looksIncomplete(assistantText));
+              (finishReason === "length" ||
+                (assistantText.trim().length >= MIN_LENGTH_FOR_INCOMPLETE_CHECK &&
+                  looksIncomplete(assistantText)));
 
             if (!needsContinuation) return;
 
