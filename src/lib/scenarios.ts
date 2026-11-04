@@ -86,7 +86,7 @@ export const BUILTIN_SCENARIOS: Scenario[] = [
     setting:
       "A wood-paneled studio at dusk — could be a piano room, a dance studio, a fencing salle. Late afternoon light, no one else in the building.",
     premise:
-      "An overdue private lesson runs late. The instructor is exacting; the student wants to be seen. Every correction is a touch held a beat too long.",
+      "Both are adults, well past their student years. An overdue private lesson runs late. The instructor is exacting; the student wants to be seen. Every correction is a touch held a beat too long.",
     vibes: ["power play", "discipline", "praise"],
     suggestedCharacters: [
       {
